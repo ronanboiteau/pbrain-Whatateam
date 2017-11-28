@@ -1,1 +1,4 @@
 piskvork/
+.idea/
+bin/
+obj/
