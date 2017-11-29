@@ -7,7 +7,7 @@
     <ProjectGuid>{20451649-9F5A-453E-B2BE-38EBCFDE46A0}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>skelet_CS</RootNamespace>
+    <RootNamespace>pbrain-Whatateam</RootNamespace>
     <AssemblyName>pbrain-Whatateam</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -36,11 +36,8 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Example.cs" />
+    <Compile Include="Whatateam.cs" />
     <Compile Include="PisqPipe.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

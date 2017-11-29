@@ -10,7 +10,7 @@ class GomocupEngine : GomocupInterface
 	{
 		get
 		{
-			return "name=\"Random\", author=\"Petr Lastovicka\", version=\"1.1\", country=\"Czech Republic\", www=\"http://petr.lastovicka.sweb.cz\"";
+			return "name=\"Whatateam\", author=\"Fanny Tavart, Oscar Stefanini & Ronan Boiteau\", version=\"0.1\", country=\"France\", www=\"http://epitech.eu\"";
 		}
 	}
 
@@ -91,9 +91,8 @@ class GomocupEngine : GomocupInterface
 
 	public override void brain_turn()
 	{
-		int x, y, i;
-
-		i = -1;
+		int x, y;
+		var i = -1;
 		do
 		{
 			x = rand.Next(width);
