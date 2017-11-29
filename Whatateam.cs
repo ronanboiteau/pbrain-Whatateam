@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Threading;
 
 internal class GomocupEngine : GomocupInterface
 {
-	private const int MaxBoard = 100;
-	int[,] board = new int[MaxBoard, MaxBoard];
+	private const int BoardSize = 19;
+	int[,] board = new int[BoardSize, BoardSize];
 	Random rand = new Random();
 
 	public override string brain_about
@@ -16,14 +17,9 @@ internal class GomocupEngine : GomocupInterface
 
 	public override void brain_init()
 	{
-		if (width < 5 || height < 5)
+		if (width != BoardSize || height != BoardSize)
 		{
-			Console.WriteLine("ERROR size of the board");
-			return;
-		}
-		if (width > MaxBoard || height > MaxBoard)
-		{
-			Console.WriteLine("ERROR Maximal board size is " + MaxBoard);
+			Console.WriteLine("ERROR Board size has to be " + BoardSize + "x" + BoardSize);
 			return;
 		}
 		Console.WriteLine("OK");
@@ -102,7 +98,7 @@ internal class GomocupEngine : GomocupInterface
 		} while (!is_free(x, y));
 
 		if (i > 1) Console.WriteLine("DEBUG {0} coordinates didn't hit an empty field", i);
-		do_mymove(x, y);
+		do_mymove(x, y); // calls brain_my(x, y)
 	}
 
 	public override void brain_end()

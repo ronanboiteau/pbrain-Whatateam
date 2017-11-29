@@ -126,7 +126,7 @@ abstract class GomocupInterface
 		stop();
 		if (width == 0)
 		{
-			width = height = 20;
+			width = height = 19;
 			brain_init();
 		}
 	}
