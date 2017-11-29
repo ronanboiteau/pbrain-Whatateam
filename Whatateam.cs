@@ -1,9 +1,9 @@
 ﻿using System;
 
-class GomocupEngine : GomocupInterface
+internal class GomocupEngine : GomocupInterface
 {
-	const int MAX_BOARD = 100;
-	int[,] board = new int[MAX_BOARD, MAX_BOARD];
+	private const int MaxBoard = 100;
+	int[,] board = new int[MaxBoard, MaxBoard];
 	Random rand = new Random();
 
 	public override string brain_about
@@ -21,9 +21,9 @@ class GomocupEngine : GomocupInterface
 			Console.WriteLine("ERROR size of the board");
 			return;
 		}
-		if (width > MAX_BOARD || height > MAX_BOARD)
+		if (width > MaxBoard || height > MaxBoard)
 		{
-			Console.WriteLine("ERROR Maximal board size is " + MAX_BOARD);
+			Console.WriteLine("ERROR Maximal board size is " + MaxBoard);
 			return;
 		}
 		Console.WriteLine("OK");
@@ -31,21 +31,21 @@ class GomocupEngine : GomocupInterface
 
 	public override void brain_restart()
 	{
-		for (int x = 0; x < width; x++)
-			for (int y = 0; y < height; y++)
+		for (var x = 0; x < width; x++)
+			for (var y = 0; y < height; y++)
 				board[x, y] = 0;
 
 		Console.WriteLine("OK");
 	}
 
-	private bool isFree(int x, int y)
+	private bool is_free(int x, int y)
 	{
 		return x >= 0 && y >= 0 && x < width && y < height && board[x, y] == 0;
 	}
 
 	public override void brain_my(int x, int y)
 	{
-		if (isFree(x, y))
+		if (is_free(x, y))
 		{
 			board[x, y] = 1;
 		}
@@ -57,7 +57,7 @@ class GomocupEngine : GomocupInterface
 
 	public override void brain_opponents(int x, int y)
 	{
-		if (isFree(x, y))
+		if (is_free(x, y))
 		{
 			board[x, y] = 2;
 		}
@@ -69,7 +69,7 @@ class GomocupEngine : GomocupInterface
 
 	public override void brain_block(int x, int y)
 	{
-		if (isFree(x, y))
+		if (is_free(x, y))
 		{
 			board[x, y] = 3;
 		}
@@ -99,7 +99,7 @@ class GomocupEngine : GomocupInterface
 			y = rand.Next(height);
 			i++;
 			if (terminate != 0) return;
-		} while (!isFree(x, y));
+		} while (!is_free(x, y));
 
 		if (i > 1) Console.WriteLine("DEBUG {0} coordinates didn't hit an empty field", i);
 		do_mymove(x, y);
