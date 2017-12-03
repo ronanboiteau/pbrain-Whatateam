@@ -82,6 +82,11 @@ internal class GomocupEngine : GomocupInterface
 		return !is_out_of_board(x, y) && _board[x, y] == 2;
 	}
 
+	private bool is_my_piece(int x, int y)
+	{
+		return !is_out_of_board(x, y) && _board[x, y] == 1;
+	}
+
 	public override void brain_my(int x, int y)
 	{
 		if (is_free(x, y))
@@ -130,7 +135,7 @@ internal class GomocupEngine : GomocupInterface
 		return 2;
 	}
 	
-	private int find_line_horizontal_right(int x, int y, int pieces)
+	private int find_line_horizontal_right(int x, int y, Func<int, int, bool> checkPiece, int pieces)
 	{
 		if (is_out_of_board(x, y))
 			return pieces;
@@ -139,12 +144,12 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[Direction.Horizontal] = true;
 	 		return pieces;
 		}
-		if (is_opponent_piece(x, y))
-			return find_line_horizontal_right(x + 1, y, pieces + 1);
+		if (checkPiece(x, y))
+			return find_line_horizontal_right(x + 1, y, checkPiece, pieces + 1);
 		return pieces;
 	}
 	
-	private int find_line_horizontal_left(int x, int y, int pieces)
+	private int find_line_horizontal_left(int x, int y, Func<int, int, bool> checkPiece, int pieces)
 	{
 		if (is_out_of_board(x, y))
 			return pieces;
@@ -153,12 +158,12 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[Direction.Horizontal] = true;
 	 		return pieces;
 		}
-		if (is_opponent_piece(x, y))
-			return find_line_horizontal_left(x - 1, y, pieces + 1);
+		if (checkPiece(x, y))
+			return find_line_horizontal_left(x - 1, y, checkPiece, pieces + 1);
  		return pieces;
 	}
 	
-	private int find_line_vertical_down(int x, int y, int pieces)
+	private int find_line_vertical_down(int x, int y, Func<int, int, bool> checkPiece, int pieces)
 	{
 		if (is_out_of_board(x, y))
 			return pieces;
@@ -167,12 +172,12 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[Direction.Vertical] = true;
 	 		return pieces;
 		}
-		if (is_opponent_piece(x, y))
-			return find_line_vertical_down(x, y + 1, pieces + 1);
+		if (checkPiece(x, y))
+			return find_line_vertical_down(x, y + 1, checkPiece, pieces + 1);
  		return pieces;
 	}
 	
-	private int find_line_vertical_up(int x, int y, int pieces)
+	private int find_line_vertical_up(int x, int y, Func<int, int, bool> checkPiece, int pieces)
 	{
 		if (is_out_of_board(x, y))
 			return pieces;
@@ -181,12 +186,12 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[Direction.Vertical] = true;
 	 		return pieces;
 		}
-		if (is_opponent_piece(x, y))
-			return find_line_vertical_up(x, y - 1, pieces + 1);
+		if (checkPiece(x, y))
+			return find_line_vertical_up(x, y - 1, checkPiece, pieces + 1);
 		return pieces;
 	}
 	
-	private int find_line_diagonal_slash_up(int x, int y, int pieces)
+	private int find_line_diagonal_slash_up(int x, int y, Func<int, int, bool> checkPiece, int pieces)
 	{
 		if (is_out_of_board(x, y))
 			return pieces;
@@ -195,12 +200,12 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[Direction.DiagonalS] = true;
 	 		return pieces;
 		}
-		if (is_opponent_piece(x, y))
-			return find_line_diagonal_slash_up(x + 1, y - 1, pieces + 1);
+		if (checkPiece(x, y))
+			return find_line_diagonal_slash_up(x + 1, y - 1, checkPiece, pieces + 1);
  		return pieces;
 	}
 	
-	private int find_line_diagonal_slash_down(int x, int y, int pieces)
+	private int find_line_diagonal_slash_down(int x, int y, Func<int, int, bool> checkPiece, int pieces)
 	{
 		if (is_out_of_board(x, y))
 			return pieces;
@@ -209,12 +214,12 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[Direction.DiagonalS] = true;
 	 		return pieces;
 		}
-		if (is_opponent_piece(x, y))
-			return find_line_diagonal_slash_down(x - 1, y + 1, pieces + 1);
+		if (checkPiece(x, y))
+			return find_line_diagonal_slash_down(x - 1, y + 1, checkPiece, pieces + 1);
  		return pieces;
 	}
 	
-	private int find_line_diagonal_antislash_up(int x, int y, int pieces)
+	private int find_line_diagonal_antislash_up(int x, int y, Func<int, int, bool> checkPiece, int pieces)
 	{
 		if (is_out_of_board(x, y))
 			return pieces;
@@ -223,12 +228,12 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[Direction.DiagonalA] = true;
 	 		return pieces;
 		}
-		if (is_opponent_piece(x, y))
-			return find_line_diagonal_antislash_up(x - 1, y - 1, pieces + 1);
+		if (checkPiece(x, y))
+			return find_line_diagonal_antislash_up(x - 1, y - 1, checkPiece, pieces + 1);
  		return pieces;
 	}
 	
-	private int find_line_diagonal_antislash_down(int x, int y, int pieces)
+	private int find_line_diagonal_antislash_down(int x, int y, Func<int, int, bool> checkPiece, int pieces)
 	{
 		if (is_out_of_board(x, y))
 			return pieces;
@@ -237,8 +242,8 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[Direction.DiagonalA] = true;
 	 		return pieces;
 		}
-		if (is_opponent_piece(x, y))
-			return find_line_diagonal_antislash_down(x + 1, y + 1, pieces + 1);
+		if (checkPiece(x, y))
+			return find_line_diagonal_antislash_down(x + 1, y + 1, checkPiece, pieces + 1);
  		return pieces;
 	}
 	
@@ -248,10 +253,10 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[key] = false;
 		var potentialLines = new Dictionary<Direction, int>
 		{
-			{ Direction.Horizontal, find_line_horizontal_left(pos.X - 1, pos.Y, 0) + find_line_horizontal_right(pos.X + 1, pos.Y, 0) + 1 },
-			{ Direction.Vertical, find_line_vertical_down(pos.X, pos.Y + 1, 0) + find_line_vertical_up(pos.X, pos.Y - 1, 0) + 1 },
-			{ Direction.DiagonalS, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, 0) + 1 },
-			{ Direction.DiagonalA, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, 0) + 1 }
+			{ Direction.Horizontal, find_line_horizontal_left(pos.X - 1, pos.Y, is_opponent_piece, 0) + find_line_horizontal_right(pos.X + 1, pos.Y, is_opponent_piece, 0) + 1 },
+			{ Direction.Vertical, find_line_vertical_down(pos.X, pos.Y + 1, is_opponent_piece, 0) + find_line_vertical_up(pos.X, pos.Y - 1, is_opponent_piece, 0) + 1 },
+			{ Direction.DiagonalS, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, is_opponent_piece, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, is_opponent_piece, 0) + 1 },
+			{ Direction.DiagonalA, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, is_opponent_piece, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, is_opponent_piece, 0) + 1 }
 		};
 		foreach (var key in potentialLines.Keys.ToList())
 		{
@@ -264,129 +269,131 @@ internal class GomocupEngine : GomocupInterface
 		return Direction.None;
 	}
 
-	private Position defend_horizontal_left(int x, int y)
+	private Position play_horizontal_left(int x, int y, Func<int, int, bool> checkPiece)
 	{
 		if (is_out_of_board(x, y))
 			return null;
 		if (is_free(x, y))
 			return new Position(x, y);
-		if (is_opponent_piece(x, y))
-			return defend_horizontal_left(x - 1, y);
+		if (checkPiece(x, y))
+			return play_horizontal_left(x - 1, y, checkPiece);
  		return null;
 	}
 
-	private Position defend_horizontal_right(int x, int y)
+	private Position play_horizontal_right(int x, int y, Func<int, int, bool> checkPiece)
 	{
 		if (is_out_of_board(x, y))
 			return null;
 		if (is_free(x, y))
 			return new Position(x, y);
-		if (is_opponent_piece(x, y))
-			return defend_horizontal_right(x + 1, y);
+		if (checkPiece(x, y))
+			return play_horizontal_right(x + 1, y, checkPiece);
  		return null;
 	}
 	
-	private Position defend_vertical_down(int x, int y)
+	private Position play_vertical_down(int x, int y, Func<int, int, bool> checkPiece)
 	{
 		if (is_out_of_board(x, y))
 			return null;
 		if (is_free(x, y))
 			return new Position(x, y);
-		if (is_opponent_piece(x, y))
-			return defend_vertical_down(x, y + 1);
+		if (checkPiece(x, y))
+			return play_vertical_down(x, y + 1, checkPiece);
  		return null;
 	}
 
-	private Position defend_vertical_up(int x, int y)
+	private Position play_vertical_up(int x, int y, Func<int, int, bool> checkPiece)
 	{
 		if (is_out_of_board(x, y))
 			return null;
 		if (is_free(x, y))
 			return new Position(x, y);
-		if (is_opponent_piece(x, y))
-			return defend_vertical_up(x, y - 1);
+		if (checkPiece(x, y))
+			return play_vertical_up(x, y - 1, checkPiece);
  		return null;
 	}
 	
-	private Position defend_diagonal_slash_down(int x, int y)
+	private Position play_diagonal_slash_down(int x, int y, Func<int, int, bool> checkPiece)
 	{
 		if (is_out_of_board(x, y))
 			return null;
 		if (is_free(x, y))
 			return new Position(x, y);
-		if (is_opponent_piece(x, y))
-			return defend_diagonal_slash_down(x - 1, y + 1);
+		if (checkPiece(x, y))
+			return play_diagonal_slash_down(x - 1, y + 1, checkPiece);
  		return null;
 	}
 
-	private Position defend_diagonal_slash_up(int x, int y)
+	private Position play_diagonal_slash_up(int x, int y, Func<int, int, bool> checkPiece)
 	{
 		if (is_out_of_board(x, y))
 			return null;
 		if (is_free(x, y))
 			return new Position(x, y);
-		if (is_opponent_piece(x, y))
-			return defend_diagonal_slash_up(x + 1, y - 1);
+		if (checkPiece(x, y))
+			return play_diagonal_slash_up(x + 1, y - 1, checkPiece);
  		return null;
 	}
 	
-		private Position defend_diagonal_antislash_down(int x, int y)
+		private Position play_diagonal_antislash_down(int x, int y, Func<int, int, bool> checkPiece)
 	{
 		if (is_out_of_board(x, y))
 			return null;
 		if (is_free(x, y))
 			return new Position(x, y);
-		if (is_opponent_piece(x, y))
-			return defend_diagonal_antislash_down(x + 1, y + 1);
+		if (checkPiece(x, y))
+			return play_diagonal_antislash_down(x + 1, y + 1, checkPiece);
  		return null;
 	}
 
-	private Position defend_diagonal_antislash_up(int x, int y)
+	private Position play_diagonal_antislash_up(int x, int y, Func<int, int, bool> checkPiece)
 	{
 		if (is_out_of_board(x, y))
 			return null;
 		if (is_free(x, y))
 			return new Position(x, y);
-		if (is_opponent_piece(x, y))
-			return defend_diagonal_antislash_up(x - 1, y - 1);
+		if (checkPiece(x, y))
+			return play_diagonal_antislash_up(x - 1, y - 1, checkPiece);
  		return null;
 	}
 	
-	private Position defend_at(Direction dir, Position pos)
+	private Position play_at(Direction dir, Position pos, Func<int, int, bool> checkPiece)
 	{
 		Position ret;
 		if (dir == Direction.Horizontal)
-			return (ret = defend_horizontal_left(pos.X - 1, pos.Y)) != null ? ret
-					: defend_horizontal_right(pos.X + 1, pos.Y);
+			return (ret = play_horizontal_left(pos.X - 1, pos.Y, checkPiece)) != null ? ret
+					: play_horizontal_right(pos.X + 1, pos.Y, checkPiece);
 		if (dir == Direction.Vertical)
-			return (ret = defend_vertical_down(pos.X, pos.Y + 1)) != null ? ret
-					: defend_vertical_up(pos.X, pos.Y - 1);
+			return (ret = play_vertical_down(pos.X, pos.Y + 1, checkPiece)) != null ? ret
+					: play_vertical_up(pos.X, pos.Y - 1, checkPiece);
 		if (dir == Direction.DiagonalS)
-			return (ret = defend_diagonal_slash_down(pos.X - 1, pos.Y + 1)) != null ? ret
-					: defend_diagonal_slash_up(pos.X + 1, pos.Y - 1);
+			return (ret = play_diagonal_slash_down(pos.X - 1, pos.Y + 1, checkPiece)) != null ? ret
+					: play_diagonal_slash_up(pos.X + 1, pos.Y - 1, checkPiece);
 		if (dir == Direction.DiagonalA)
-			return (ret = defend_diagonal_antislash_down(pos.X + 1, pos.Y + 1)) != null ? ret
-					: defend_diagonal_antislash_up(pos.X - 1, pos.Y - 1);
+			return (ret = play_diagonal_antislash_down(pos.X + 1, pos.Y + 1, checkPiece)) != null ? ret
+					: play_diagonal_antislash_up(pos.X - 1, pos.Y - 1, checkPiece);
 		return null;
 	}
 	
-//	private Position attack_at(Position pos)
-//	{
-//		Position ret;
-//		if (dir == Direction.Horizontal)
-//			return (ret = defend_horizontal_left(pos.X - 1, pos.Y)) != null ? ret
-//					: defend_horizontal_right(pos.X + 1, pos.Y);
-//		if (dir == Direction.Vertical)
-//			return (ret = defend_vertical_down(pos.X, pos.Y + 1)) != null ? ret
-//					: defend_vertical_up(pos.X, pos.Y - 1);
-//		if (dir == Direction.DiagonalS)
-//			return (ret = defend_diagonal_slash_down(pos.X - 1, pos.Y + 1)) != null ? ret
-//					: defend_diagonal_slash_up(pos.X + 1, pos.Y - 1);
-//		if (dir == Direction.DiagonalA)
-//			return (ret = defend_diagonal_antislash_down(pos.X + 1, pos.Y + 1)) != null ? ret
-//					: defend_diagonal_antislash_up(pos.X - 1, pos.Y - 1);
-//		return null;
-//	}
+	private Position attack_at(Position pos)
+	{
+		foreach (var key in _canPlay.Keys.ToList())
+			_canPlay[key] = false;
+		var potentialLines = new Dictionary<Direction, int>
+		{
+			{ Direction.Horizontal, find_line_horizontal_left(pos.X - 1, pos.Y, is_my_piece, 0) + find_line_horizontal_right(pos.X + 1, pos.Y, is_my_piece, 0) + 1 },
+			{ Direction.Vertical, find_line_vertical_down(pos.X, pos.Y + 1, is_my_piece, 0) + find_line_vertical_up(pos.X, pos.Y - 1, is_my_piece, 0) + 1 },
+			{ Direction.DiagonalS, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, is_my_piece, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, is_my_piece, 0) + 1 },
+			{ Direction.DiagonalA, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, is_my_piece, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, is_my_piece, 0) + 1 }
+		};
+		foreach (var key in potentialLines.Keys.ToList())
+		{
+			if (!_canPlay[key])
+				potentialLines[key] = 0;
+		}
+		var max = potentialLines.Max(kvp => kvp.Value);
+		return play_at(potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First(), pos, is_my_piece);
+	}
 	
 	public override void brain_turn()
 	{
@@ -403,13 +410,13 @@ internal class GomocupEngine : GomocupInterface
 						pos.X = _rand.Next(0, width);
 						pos.Y = _rand.Next(0, height);
 					} while (!is_free(pos.X, pos.Y));
-					//				_attackZone = pos;
+					_attackZone = pos;
 				}
-				//			else
-				//				pos = attack_at(_attackZone);
+				else
+					pos = attack_at(_attackZone);
 			}
 			else
-				pos = defend_at(dangerZone, _opponentLastMove);
+				pos = play_at(dangerZone, _opponentLastMove, is_opponent_piece);
 			if (terminate != 0)
 				return;
 			//		if (!is_free(pos.X, pos.Y))
