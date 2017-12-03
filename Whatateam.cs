@@ -1,12 +1,44 @@
 ﻿using System;
-using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+
+internal class Position
+{
+	public int X, Y;
+
+	public Position() {}
+
+	public Position(int x, int y)
+	{
+		X = x;
+		Y = y;
+	}
+}
+
+internal enum Direction
+{
+	None = 0,
+	Horizontal,
+	Vertical,
+	DiagonalS,
+	DiagonalA
+}
 
 internal class GomocupEngine : GomocupInterface
 {
 	private const int BoardSize = 19;
-	int[,] board = new int[BoardSize, BoardSize];
-	Random rand = new Random();
-
+	private int[,] _board = new int[BoardSize, BoardSize];
+	private Random _rand = new Random();
+	private Position _opponentLastMove = new Position();
+	private Dictionary<Direction, bool> _canPlay = new Dictionary<Direction, bool>
+	{
+		{ Direction.Horizontal, false },
+		{ Direction.Vertical, false },
+		{ Direction.DiagonalS, false },
+		{ Direction.DiagonalA, false }
+	};
 	public override string brain_about
 	{
 		get
@@ -29,21 +61,31 @@ internal class GomocupEngine : GomocupInterface
 	{
 		for (var x = 0; x < width; x++)
 			for (var y = 0; y < height; y++)
-				board[x, y] = 0;
+				_board[x, y] = 0;
 
 		Console.WriteLine("OK");
 	}
 
+	private bool is_out_of_board(int x, int y)
+	{
+		return !(x >= 0 && y >= 0 && x < width && y < height);
+	}
+
 	private bool is_free(int x, int y)
 	{
-		return x >= 0 && y >= 0 && x < width && y < height && board[x, y] == 0;
+		return !is_out_of_board(x, y) && _board[x, y] == 0;
+	}
+
+	private bool is_opponent_piece(int x, int y)
+	{
+		return !is_out_of_board(x, y) && _board[x, y] == 2;
 	}
 
 	public override void brain_my(int x, int y)
 	{
 		if (is_free(x, y))
 		{
-			board[x, y] = 1;
+			_board[x, y] = 1;
 		}
 		else
 		{
@@ -55,7 +97,9 @@ internal class GomocupEngine : GomocupInterface
 	{
 		if (is_free(x, y))
 		{
-			board[x, y] = 2;
+			_board[x, y] = 2;
+			_opponentLastMove.X = x;
+			_opponentLastMove.Y = y;
 		}
 		else
 		{
@@ -67,7 +111,7 @@ internal class GomocupEngine : GomocupInterface
 	{
 		if (is_free(x, y))
 		{
-			board[x, y] = 3;
+			_board[x, y] = 3;
 		}
 		else
 		{
@@ -77,28 +121,276 @@ internal class GomocupEngine : GomocupInterface
 
 	public override int brain_takeback(int x, int y)
 	{
-		if (x >= 0 && y >= 0 && x < width && y < height && board[x, y] != 0)
+		if (x >= 0 && y >= 0 && x < width && y < height && _board[x, y] != 0)
 		{
-			board[x, y] = 0;
+			_board[x, y] = 0;
 			return 0;
 		}
 		return 2;
 	}
+	
+	private int find_line_horizontal_right(int x, int y, int pieces)
+	{
+		if (is_out_of_board(x, y))
+			return pieces;
+		if (is_free(x, y))
+		{
+			_canPlay[Direction.Horizontal] = true;
+	 		return pieces;
+		}
+		if (is_opponent_piece(x, y))
+			return find_line_horizontal_right(x + 1, y, pieces + 1);
+		return pieces;
+	}
+	
+	private int find_line_horizontal_left(int x, int y, int pieces)
+	{
+		if (is_out_of_board(x, y))
+			return pieces;
+		if (is_free(x, y))
+		{
+			_canPlay[Direction.Horizontal] = true;
+	 		return pieces;
+		}
+		if (is_opponent_piece(x, y))
+			return find_line_horizontal_left(x - 1, y, pieces + 1);
+ 		return pieces;
+	}
+	
+	private int find_line_vertical_down(int x, int y, int pieces)
+	{
+		if (is_out_of_board(x, y))
+			return pieces;
+		if (is_free(x, y))
+		{
+			_canPlay[Direction.Vertical] = true;
+	 		return pieces;
+		}
+		if (is_opponent_piece(x, y))
+			return find_line_vertical_down(x, y + 1, pieces + 1);
+ 		return pieces;
+	}
+	
+	private int find_line_vertical_up(int x, int y, int pieces)
+	{
+		if (is_out_of_board(x, y))
+			return pieces;
+		if (is_free(x, y))
+		{
+			_canPlay[Direction.Vertical] = true;
+	 		return pieces;
+		}
+		if (is_opponent_piece(x, y))
+			return find_line_vertical_up(x, y - 1, pieces + 1);
+		return pieces;
+	}
+	
+	private int find_line_diagonal_slash_up(int x, int y, int pieces)
+	{
+		if (is_out_of_board(x, y))
+			return pieces;
+		if (is_free(x, y))
+		{
+			_canPlay[Direction.DiagonalS] = true;
+	 		return pieces;
+		}
+		if (is_opponent_piece(x, y))
+			return find_line_diagonal_slash_up(x + 1, y - 1, pieces + 1);
+ 		return pieces;
+	}
+	
+	private int find_line_diagonal_slash_down(int x, int y, int pieces)
+	{
+		if (is_out_of_board(x, y))
+			return pieces;
+		if (is_free(x, y))
+		{
+			_canPlay[Direction.DiagonalS] = true;
+	 		return pieces;
+		}
+		if (is_opponent_piece(x, y))
+			return find_line_diagonal_slash_down(x - 1, y + 1, pieces + 1);
+ 		return pieces;
+	}
+	
+	private int find_line_diagonal_antislash_up(int x, int y, int pieces)
+	{
+		if (is_out_of_board(x, y))
+			return pieces;
+		if (is_free(x, y))
+		{
+			_canPlay[Direction.DiagonalA] = true;
+	 		return pieces;
+		}
+		if (is_opponent_piece(x, y))
+			return find_line_diagonal_antislash_up(x - 1, y - 1, pieces + 1);
+ 		return pieces;
+	}
+	
+	private int find_line_diagonal_antislash_down(int x, int y, int pieces)
+	{
+		if (is_out_of_board(x, y))
+			return pieces;
+		if (is_free(x, y))
+		{
+			_canPlay[Direction.DiagonalA] = true;
+	 		return pieces;
+		}
+		if (is_opponent_piece(x, y))
+			return find_line_diagonal_antislash_down(x + 1, y + 1, pieces + 1);
+ 		return pieces;
+	}
+	
+	private Direction find_danger_zone(Position pos)
+	{
+		foreach (var key in _canPlay.Keys.ToList())
+			_canPlay[key] = false;
+		var potentialLines = new Dictionary<Direction, int>
+		{
+			{ Direction.Horizontal, find_line_horizontal_left(pos.X - 1, pos.Y, 0) + find_line_horizontal_right(pos.X + 1, pos.Y, 0) + 1 },
+			{ Direction.Vertical, find_line_vertical_down(pos.X, pos.Y + 1, 0) + find_line_vertical_up(pos.X, pos.Y - 1, 0) + 1 },
+			{ Direction.DiagonalS, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, 0) + 1 },
+			{ Direction.DiagonalA, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, 0) + 1 }
+		};
+		Console.WriteLine("MESSAGE Analyzing piece at [" + pos.X + "," + pos.Y + "]");
+		Console.WriteLine("MESSAGE [Vertical]   aligned pieces: " + potentialLines[Direction.Vertical]);
+		Console.WriteLine("MESSAGE [Horizontal] aligned pieces: " + potentialLines[Direction.Horizontal]);
+		Console.WriteLine("MESSAGE [Diagonal A] aligned pieces: " + potentialLines[Direction.DiagonalS]);
+		Console.WriteLine("MESSAGE [Diagonal S] aligned pieces: " + potentialLines[Direction.DiagonalA]);
+		foreach (var elem in potentialLines)
+		{
+			if (!_canPlay[elem.Key])
+				potentialLines[elem.Key] = 0;
+		}
+		var max = potentialLines.Max(kvp => kvp.Value);
+		if (max >= 3)
+			return potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First();
+		return Direction.None;
+	}
 
+	private Position defend_horizontal_left(int x, int y)
+	{
+		if (is_out_of_board(x, y))
+			return null;
+		if (is_free(x, y))
+			return new Position(x, y);
+		if (is_opponent_piece(x, y))
+			return defend_horizontal_left(x - 1, y);
+ 		return null;
+	}
+
+	private Position defend_horizontal_right(int x, int y)
+	{
+		if (is_out_of_board(x, y))
+			return null;
+		if (is_free(x, y))
+			return new Position(x, y);
+		if (is_opponent_piece(x, y))
+			return defend_horizontal_right(x + 1, y);
+ 		return null;
+	}
+	
+	private Position defend_vertical_down(int x, int y)
+	{
+		if (is_out_of_board(x, y))
+			return null;
+		if (is_free(x, y))
+			return new Position(x, y);
+		if (is_opponent_piece(x, y))
+			return defend_vertical_down(x, y + 1);
+ 		return null;
+	}
+
+	private Position defend_vertical_up(int x, int y)
+	{
+		if (is_out_of_board(x, y))
+			return null;
+		if (is_free(x, y))
+			return new Position(x, y);
+		if (is_opponent_piece(x, y))
+			return defend_vertical_up(x, y - 1);
+ 		return null;
+	}
+	
+	private Position defend_diagonal_slash_down(int x, int y)
+	{
+		if (is_out_of_board(x, y))
+			return null;
+		if (is_free(x, y))
+			return new Position(x, y);
+		if (is_opponent_piece(x, y))
+			return defend_diagonal_slash_down(x - 1, y + 1);
+ 		return null;
+	}
+
+	private Position defend_diagonal_slash_up(int x, int y)
+	{
+		if (is_out_of_board(x, y))
+			return null;
+		if (is_free(x, y))
+			return new Position(x, y);
+		if (is_opponent_piece(x, y))
+			return defend_diagonal_slash_up(x + 1, y - 1);
+ 		return null;
+	}
+	
+		private Position defend_diagonal_antislash_down(int x, int y)
+	{
+		if (is_out_of_board(x, y))
+			return null;
+		if (is_free(x, y))
+			return new Position(x, y);
+		if (is_opponent_piece(x, y))
+			return defend_diagonal_antislash_down(x + 1, y + 1);
+ 		return null;
+	}
+
+	private Position defend_diagonal_antislash_up(int x, int y)
+	{
+		if (is_out_of_board(x, y))
+			return null;
+		if (is_free(x, y))
+			return new Position(x, y);
+		if (is_opponent_piece(x, y))
+			return defend_diagonal_antislash_up(x - 1, y - 1);
+ 		return null;
+	}
+	
+	private Position defend_at(Direction dir, Position pos)
+	{
+		Position ret = null; 
+		if (dir == Direction.Horizontal)
+			return (ret = defend_horizontal_left(pos.X - 1, pos.Y)) != null ? ret
+					: defend_horizontal_right(pos.X + 1, pos.Y);
+		if (dir == Direction.Vertical)
+			return (ret = defend_vertical_down(pos.X, pos.Y + 1)) != null ? ret
+					: defend_vertical_up(pos.X, pos.Y - 1);
+		if (dir == Direction.DiagonalS)
+			return (ret = defend_diagonal_slash_down(pos.X - 1, pos.Y + 1)) != null ? ret
+					: defend_diagonal_slash_up(pos.X + 1, pos.Y - 1);
+		if (dir == Direction.DiagonalA)
+			return (ret = defend_diagonal_antislash_down(pos.X + 1, pos.Y + 1)) != null ? ret
+					: defend_diagonal_antislash_up(pos.X - 1, pos.Y - 1);
+		return null;
+	}
+	
 	public override void brain_turn()
 	{
-		int x, y;
-		var i = -1;
-		do
+		var pos = new Position();
+		var dangerZone = find_danger_zone(_opponentLastMove);
+		if (dangerZone == Direction.None)
 		{
-			x = rand.Next(width);
-			y = rand.Next(height);
-			i++;
-			if (terminate != 0) return;
-		} while (!is_free(x, y));
-
-		if (i > 1) Console.WriteLine("DEBUG {0} coordinates didn't hit an empty field", i);
-		do_mymove(x, y); // calls brain_my(x, y)
+			//attack!!
+			pos.X = _rand.Next(0, width);
+			pos.Y = _rand.Next(0, height);
+		}
+		else
+			pos = defend_at(dangerZone, _opponentLastMove);
+		if (terminate != 0)
+			return;
+		if (!is_free(pos.X, pos.Y))
+			Console.WriteLine("DEBUG [" + pos.X  + "," + pos.Y + "] coordinates didn't hit an empty field");
+		do_mymove(pos.X, pos.Y);
 	}
 
 	public override void brain_end()
