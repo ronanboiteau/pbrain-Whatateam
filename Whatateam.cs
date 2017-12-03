@@ -407,7 +407,7 @@ internal class GomocupEngine : GomocupInterface
 		var i = 0;
 		do
 		{
-			pos = i < 1000 ? new Position(_rand.Next(4, width - 4), _rand.Next(4, height - 4))
+			pos = i < 100 ? new Position(_rand.Next(4, width - 4), _rand.Next(4, height - 4))
 				: new Position(_rand.Next(0, width), _rand.Next(0, height));
 			++i;
 		} while (!is_free(pos.X, pos.Y));
@@ -427,8 +427,7 @@ internal class GomocupEngine : GomocupInterface
 				else
 				{
 					pos = attack_at(_attackZone);
-					if (_rand.Next(1, 4) == 1)
-						_attackZone = pos;
+					_attackZone = pos;
 				}
 			}
 			else
