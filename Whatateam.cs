@@ -32,6 +32,7 @@ internal class GomocupEngine : GomocupInterface
 	private int[,] _board = new int[BoardSize, BoardSize];
 	private Random _rand = new Random();
 	private Position _opponentLastMove = new Position();
+	private Position _attackZone;
 	private Dictionary<Direction, bool> _canPlay = new Dictionary<Direction, bool>
 	{
 		{ Direction.Horizontal, false },
@@ -252,18 +253,13 @@ internal class GomocupEngine : GomocupInterface
 			{ Direction.DiagonalS, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, 0) + 1 },
 			{ Direction.DiagonalA, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, 0) + 1 }
 		};
-		Console.WriteLine("MESSAGE Analyzing piece at [" + pos.X + "," + pos.Y + "]");
-		Console.WriteLine("MESSAGE [Vertical]   aligned pieces: " + potentialLines[Direction.Vertical]);
-		Console.WriteLine("MESSAGE [Horizontal] aligned pieces: " + potentialLines[Direction.Horizontal]);
-		Console.WriteLine("MESSAGE [Diagonal A] aligned pieces: " + potentialLines[Direction.DiagonalS]);
-		Console.WriteLine("MESSAGE [Diagonal S] aligned pieces: " + potentialLines[Direction.DiagonalA]);
-		foreach (var elem in potentialLines)
+		foreach (var key in potentialLines.Keys.ToList())
 		{
-			if (!_canPlay[elem.Key])
-				potentialLines[elem.Key] = 0;
+			if (!_canPlay[key])
+				potentialLines[key] = 0;
 		}
 		var max = potentialLines.Max(kvp => kvp.Value);
-		if (max >= 3)
+		if (max >= 3 || _rand.Next(0, 3) == 0)
 			return potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First();
 		return Direction.None;
 	}
@@ -358,7 +354,7 @@ internal class GomocupEngine : GomocupInterface
 	
 	private Position defend_at(Direction dir, Position pos)
 	{
-		Position ret = null; 
+		Position ret;
 		if (dir == Direction.Horizontal)
 			return (ret = defend_horizontal_left(pos.X - 1, pos.Y)) != null ? ret
 					: defend_horizontal_right(pos.X + 1, pos.Y);
@@ -374,23 +370,54 @@ internal class GomocupEngine : GomocupInterface
 		return null;
 	}
 	
+//	private Position attack_at(Position pos)
+//	{
+//		Position ret;
+//		if (dir == Direction.Horizontal)
+//			return (ret = defend_horizontal_left(pos.X - 1, pos.Y)) != null ? ret
+//					: defend_horizontal_right(pos.X + 1, pos.Y);
+//		if (dir == Direction.Vertical)
+//			return (ret = defend_vertical_down(pos.X, pos.Y + 1)) != null ? ret
+//					: defend_vertical_up(pos.X, pos.Y - 1);
+//		if (dir == Direction.DiagonalS)
+//			return (ret = defend_diagonal_slash_down(pos.X - 1, pos.Y + 1)) != null ? ret
+//					: defend_diagonal_slash_up(pos.X + 1, pos.Y - 1);
+//		if (dir == Direction.DiagonalA)
+//			return (ret = defend_diagonal_antislash_down(pos.X + 1, pos.Y + 1)) != null ? ret
+//					: defend_diagonal_antislash_up(pos.X - 1, pos.Y - 1);
+//		return null;
+//	}
+	
 	public override void brain_turn()
 	{
-		var pos = new Position();
-		var dangerZone = find_danger_zone(_opponentLastMove);
-		if (dangerZone == Direction.None)
+		try
 		{
-			//attack!!
-			pos.X = _rand.Next(0, width);
-			pos.Y = _rand.Next(0, height);
+			var pos = new Position();
+			var dangerZone = find_danger_zone(_opponentLastMove);
+			if (dangerZone == Direction.None)
+			{
+				if (_attackZone == null)
+				{
+					do
+					{
+						pos.X = _rand.Next(0, width);
+						pos.Y = _rand.Next(0, height);
+					} while (!is_free(pos.X, pos.Y));
+					//				_attackZone = pos;
+				}
+				//			else
+				//				pos = attack_at(_attackZone);
+			}
+			else
+				pos = defend_at(dangerZone, _opponentLastMove);
+			if (terminate != 0)
+				return;
+			//		if (!is_free(pos.X, pos.Y))
+			//			Console.WriteLine("DEBUG [" + pos.X  + "," + pos.Y + "] coordinates didn't hit an empty field");
+			do_mymove(pos.X, pos.Y);
+		} catch (Exception e) {
+			Console.WriteLine("ERROR The AI crashed! Exception:\n" + e);
 		}
-		else
-			pos = defend_at(dangerZone, _opponentLastMove);
-		if (terminate != 0)
-			return;
-		if (!is_free(pos.X, pos.Y))
-			Console.WriteLine("DEBUG [" + pos.X  + "," + pos.Y + "] coordinates didn't hit an empty field");
-		do_mymove(pos.X, pos.Y);
 	}
 
 	public override void brain_end()
