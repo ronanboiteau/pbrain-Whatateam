@@ -264,7 +264,7 @@ internal class GomocupEngine : GomocupInterface
 				potentialLines[key] = 0;
 		}
 		var max = potentialLines.Max(kvp => kvp.Value);
-		if (max >= 3 || _rand.Next(0, 3) == 0)
+		if (max >= 3)
 			return potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First();
 		return Direction.None;
 	}
