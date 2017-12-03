@@ -258,8 +258,8 @@ internal class GomocupEngine : GomocupInterface
 		{
 			{ Direction.Horizontal, find_line_horizontal_left(pos.X - 1, pos.Y, is_opponent_piece, 0) + find_line_horizontal_right(pos.X + 1, pos.Y, is_opponent_piece, 0) + 1 },
 			{ Direction.Vertical, find_line_vertical_down(pos.X, pos.Y + 1, is_opponent_piece, 0) + find_line_vertical_up(pos.X, pos.Y - 1, is_opponent_piece, 0) + 1 },
-			{ Direction.DiagonalS, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, is_opponent_piece, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, is_opponent_piece, 0) + 1 },
-			{ Direction.DiagonalA, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, is_opponent_piece, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, is_opponent_piece, 0) + 1 }
+			{ Direction.DiagonalS, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, is_opponent_piece, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, is_opponent_piece, 0) + 1 },
+			{ Direction.DiagonalA, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, is_opponent_piece, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, is_opponent_piece, 0) + 1 }
 		};
 		foreach (var key in potentialLines.Keys.ToList())
 		{
@@ -389,8 +389,8 @@ internal class GomocupEngine : GomocupInterface
 		{
 			{ Direction.Horizontal, find_line_horizontal_left(pos.X - 1, pos.Y, is_my_piece, 0) + find_line_horizontal_right(pos.X + 1, pos.Y, is_my_piece, 0) + 1 },
 			{ Direction.Vertical, find_line_vertical_down(pos.X, pos.Y + 1, is_my_piece, 0) + find_line_vertical_up(pos.X, pos.Y - 1, is_my_piece, 0) + 1 },
-			{ Direction.DiagonalS, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, is_my_piece, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, is_my_piece, 0) + 1 },
-			{ Direction.DiagonalA, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, is_my_piece, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, is_my_piece, 0) + 1 }
+			{ Direction.DiagonalS, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, is_my_piece, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, is_my_piece, 0) + 1 },
+			{ Direction.DiagonalA, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, is_my_piece, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, is_my_piece, 0) + 1 }
 		};
 		foreach (var key in potentialLines.Keys.ToList())
 		{
