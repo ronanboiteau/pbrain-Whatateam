@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 
 internal class Position
 {
@@ -28,8 +26,8 @@ internal enum Direction
 
 internal class GomocupEngine : GomocupInterface
 {
-	private const int BoardSize = 19;
-	private int[,] _board = new int[BoardSize, BoardSize];
+	private const int MaxBoardSize = 100;
+	private int[,] _board = new int[MaxBoardSize, MaxBoardSize];
 	private Random _rand = new Random();
 	private Position _opponentLastMove = new Position();
 	private Position _attackZone;
@@ -47,12 +45,17 @@ internal class GomocupEngine : GomocupInterface
 			return "name=\"Whatateam\", author=\"Fanny Tavart, Oscar Stefanini & Ronan Boiteau\", version=\"0.1\", country=\"France\", www=\"http://epitech.eu\"";
 		}
 	}
-
+	
 	public override void brain_init()
 	{
-		if (width != BoardSize || height != BoardSize)
+		if (width < 5 || height < 5)
 		{
-			Console.WriteLine("ERROR Board size has to be " + BoardSize + "x" + BoardSize);
+			Console.WriteLine("ERROR The board is too small");
+			return;
+		}
+		if (width > MaxBoardSize || height > MaxBoardSize)
+		{
+			Console.WriteLine("ERROR Maximal board size is " + MaxBoardSize);
 			return;
 		}
 		Console.WriteLine("OK");
@@ -360,18 +363,21 @@ internal class GomocupEngine : GomocupInterface
 	private Position play_at(Direction dir, Position pos, Func<int, int, bool> checkPiece)
 	{
 		Position ret;
-		if (dir == Direction.Horizontal)
-			return (ret = play_horizontal_left(pos.X - 1, pos.Y, checkPiece)) != null ? ret
+		switch (dir)
+		{
+			case Direction.Horizontal:
+				return (ret = play_horizontal_left(pos.X - 1, pos.Y, checkPiece)) != null ? ret
 					: play_horizontal_right(pos.X + 1, pos.Y, checkPiece);
-		if (dir == Direction.Vertical)
-			return (ret = play_vertical_down(pos.X, pos.Y + 1, checkPiece)) != null ? ret
+			case Direction.Vertical:
+				return (ret = play_vertical_down(pos.X, pos.Y + 1, checkPiece)) != null ? ret
 					: play_vertical_up(pos.X, pos.Y - 1, checkPiece);
-		if (dir == Direction.DiagonalS)
-			return (ret = play_diagonal_slash_down(pos.X - 1, pos.Y + 1, checkPiece)) != null ? ret
+			case Direction.DiagonalS:
+				return (ret = play_diagonal_slash_down(pos.X - 1, pos.Y + 1, checkPiece)) != null ? ret
 					: play_diagonal_slash_up(pos.X + 1, pos.Y - 1, checkPiece);
-		if (dir == Direction.DiagonalA)
-			return (ret = play_diagonal_antislash_down(pos.X + 1, pos.Y + 1, checkPiece)) != null ? ret
+			case Direction.DiagonalA:
+				return (ret = play_diagonal_antislash_down(pos.X + 1, pos.Y + 1, checkPiece)) != null ? ret
 					: play_diagonal_antislash_up(pos.X - 1, pos.Y - 1, checkPiece);
+		}
 		return null;
 	}
 	
@@ -394,37 +400,48 @@ internal class GomocupEngine : GomocupInterface
 		var max = potentialLines.Max(kvp => kvp.Value);
 		return play_at(potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First(), pos, is_my_piece);
 	}
+
+	private Position random_play()
+	{
+		Position pos;
+		var i = 0;
+		do
+		{
+			pos = i < 1000 ? new Position(_rand.Next(4, width - 4), _rand.Next(4, height - 4))
+				: new Position(_rand.Next(0, width), _rand.Next(0, height));
+			++i;
+		} while (!is_free(pos.X, pos.Y));
+		return pos;
+	}
 	
 	public override void brain_turn()
 	{
+		Position pos;
 		try
 		{
-			var pos = new Position();
 			var dangerZone = find_danger_zone(_opponentLastMove);
 			if (dangerZone == Direction.None)
 			{
 				if (_attackZone == null)
-				{
-					do
-					{
-						pos.X = _rand.Next(0, width);
-						pos.Y = _rand.Next(0, height);
-					} while (!is_free(pos.X, pos.Y));
-					_attackZone = pos;
-				}
+					_attackZone = pos = random_play();
 				else
+				{
 					pos = attack_at(_attackZone);
+					if (_rand.Next(1, 4) == 1)
+						_attackZone = pos;
+				}
 			}
 			else
 				pos = play_at(dangerZone, _opponentLastMove, is_opponent_piece);
-			if (terminate != 0)
-				return;
-			//		if (!is_free(pos.X, pos.Y))
-			//			Console.WriteLine("DEBUG [" + pos.X  + "," + pos.Y + "] coordinates didn't hit an empty field");
-			do_mymove(pos.X, pos.Y);
-		} catch (Exception e) {
-			Console.WriteLine("ERROR The AI crashed! Exception:\n" + e);
+		} catch (Exception) {
+			pos = null;
+			Console.WriteLine("MESSAGE [Whatateam AI] Something went wrong!");
 		}
+		if (terminate != 0)
+			return;
+		if (pos == null)
+			_attackZone = pos = random_play();
+		do_mymove(pos.X, pos.Y);
 	}
 
 	public override void brain_end()
