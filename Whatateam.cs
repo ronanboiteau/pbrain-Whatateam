@@ -18,10 +18,18 @@ internal class Position
 internal enum Direction
 {
 	None = 0,
-	Horizontal,
 	Vertical,
-	DiagonalS,
-	DiagonalA
+	VerticalUp,
+	VerticalDown,
+	Horizontal,
+	HorizontalLeft,
+	HorizontalRight,
+	DiagonalSlash,
+	DiagonalSlashUp,
+	DiagonalSlashDown,
+	DiagonalAntislash,
+	DiagonalAntislashUp,
+	DiagonalAntislashDown
 }
 
 internal class GomocupEngine : GomocupInterface
@@ -33,11 +41,27 @@ internal class GomocupEngine : GomocupInterface
 	private Position _attackZone;
 	private Dictionary<Direction, bool> _canPlay = new Dictionary<Direction, bool>
 	{
-		{ Direction.Horizontal, false },
-		{ Direction.Vertical, false },
-		{ Direction.DiagonalS, false },
-		{ Direction.DiagonalA, false }
+		{ Direction.VerticalUp, false },
+		{ Direction.VerticalDown, false },
+		{ Direction.HorizontalLeft, false },
+		{ Direction.HorizontalRight, false },
+		{ Direction.DiagonalSlashUp, false },
+		{ Direction.DiagonalSlashDown, false },
+		{ Direction.DiagonalAntislashUp, false },
+		{ Direction.DiagonalAntislashDown, false }
 	};
+	private Dictionary<Direction, int> _pieces = new Dictionary<Direction, int>
+		{
+			{ Direction.VerticalUp, 0 },
+			{ Direction.VerticalDown, 0 },
+			{ Direction.HorizontalLeft, 0 },
+			{ Direction.HorizontalRight, 0 },
+			{ Direction.DiagonalSlashUp, 0 },
+			{ Direction.DiagonalSlashDown, 0 },
+			{ Direction.DiagonalAntislashUp, 0 },
+			{ Direction.DiagonalAntislashDown, 0 }
+		};
+
 	public override string brain_about
 	{
 		get
@@ -66,7 +90,6 @@ internal class GomocupEngine : GomocupInterface
 		for (var x = 0; x < width; x++)
 			for (var y = 0; y < height; y++)
 				_board[x, y] = 0;
-
 		Console.WriteLine("OK");
 	}
 
@@ -138,140 +161,242 @@ internal class GomocupEngine : GomocupInterface
 		return 2;
 	}
 	
-	private int find_line_horizontal_right(int x, int y, Func<int, int, bool> checkPiece, int pieces)
+	private int find_line_horizontal_right(int x, int y, Func<int, int, bool> checkPiece)
 	{
-		if (is_out_of_board(x, y))
-			return pieces;
-		if (is_free(x, y))
+		var pieces = 0;
+		var iterations = 0;
+		var isLastFree = false;
+		while (iterations < 5)
 		{
-			_canPlay[Direction.Horizontal] = true;
-	 		return pieces;
+			if (is_out_of_board(x, y))
+				return pieces;
+			if (is_free(x, y))
+			{
+				_canPlay[Direction.HorizontalRight] = true;
+				if (isLastFree)
+					return pieces;
+				isLastFree = true;
+			}
+			else if (checkPiece(x, y))
+			{
+				isLastFree = false;
+				++pieces;
+			}
+			else
+				return pieces;
+			++x;
+			++iterations;
 		}
-		if (checkPiece(x, y))
-			return find_line_horizontal_right(x + 1, y, checkPiece, pieces + 1);
 		return pieces;
 	}
 	
-	private int find_line_horizontal_left(int x, int y, Func<int, int, bool> checkPiece, int pieces)
+	private int find_line_horizontal_left(int x, int y, Func<int, int, bool> checkPiece)
 	{
-		if (is_out_of_board(x, y))
-			return pieces;
-		if (is_free(x, y))
+		var pieces = 0;
+		var iterations = 0;
+		var isLastFree = false;
+		while (iterations < 5)
 		{
-			_canPlay[Direction.Horizontal] = true;
-	 		return pieces;
+			if (is_out_of_board(x, y))
+				return pieces;
+			if (is_free(x, y))
+			{
+				_canPlay[Direction.HorizontalLeft] = true;
+				if (isLastFree)
+					return pieces;
+				isLastFree = true;
+			}
+			else if (checkPiece(x, y))
+			{
+				isLastFree = false;
+				++pieces;
+			}
+			else
+				return pieces;
+			--x;
+			++iterations;
 		}
-		if (checkPiece(x, y))
-			return find_line_horizontal_left(x - 1, y, checkPiece, pieces + 1);
- 		return pieces;
-	}
-	
-	private int find_line_vertical_down(int x, int y, Func<int, int, bool> checkPiece, int pieces)
-	{
-		if (is_out_of_board(x, y))
-			return pieces;
-		if (is_free(x, y))
-		{
-			_canPlay[Direction.Vertical] = true;
-	 		return pieces;
-		}
-		if (checkPiece(x, y))
-			return find_line_vertical_down(x, y + 1, checkPiece, pieces + 1);
- 		return pieces;
-	}
-	
-	private int find_line_vertical_up(int x, int y, Func<int, int, bool> checkPiece, int pieces)
-	{
-		if (is_out_of_board(x, y))
-			return pieces;
-		if (is_free(x, y))
-		{
-			_canPlay[Direction.Vertical] = true;
-	 		return pieces;
-		}
-		if (checkPiece(x, y))
-			return find_line_vertical_up(x, y - 1, checkPiece, pieces + 1);
 		return pieces;
-	}
-	
-	private int find_line_diagonal_slash_up(int x, int y, Func<int, int, bool> checkPiece, int pieces)
-	{
-		if (is_out_of_board(x, y))
-			return pieces;
-		if (is_free(x, y))
-		{
-			_canPlay[Direction.DiagonalS] = true;
-	 		return pieces;
-		}
-		if (checkPiece(x, y))
-			return find_line_diagonal_slash_up(x + 1, y - 1, checkPiece, pieces + 1);
- 		return pieces;
-	}
-	
-	private int find_line_diagonal_slash_down(int x, int y, Func<int, int, bool> checkPiece, int pieces)
-	{
-		if (is_out_of_board(x, y))
-			return pieces;
-		if (is_free(x, y))
-		{
-			_canPlay[Direction.DiagonalS] = true;
-	 		return pieces;
-		}
-		if (checkPiece(x, y))
-			return find_line_diagonal_slash_down(x - 1, y + 1, checkPiece, pieces + 1);
- 		return pieces;
-	}
-	
-	private int find_line_diagonal_antislash_up(int x, int y, Func<int, int, bool> checkPiece, int pieces)
-	{
-		if (is_out_of_board(x, y))
-			return pieces;
-		if (is_free(x, y))
-		{
-			_canPlay[Direction.DiagonalA] = true;
-	 		return pieces;
-		}
-		if (checkPiece(x, y))
-			return find_line_diagonal_antislash_up(x - 1, y - 1, checkPiece, pieces + 1);
- 		return pieces;
-	}
-	
-	private int find_line_diagonal_antislash_down(int x, int y, Func<int, int, bool> checkPiece, int pieces)
-	{
-		if (is_out_of_board(x, y))
-			return pieces;
-		if (is_free(x, y))
-		{
-			_canPlay[Direction.DiagonalA] = true;
-	 		return pieces;
-		}
-		if (checkPiece(x, y))
-			return find_line_diagonal_antislash_down(x + 1, y + 1, checkPiece, pieces + 1);
- 		return pieces;
-	}
-	
-	private Direction find_danger_zone(Position pos)
-	{
-		foreach (var key in _canPlay.Keys.ToList())
-			_canPlay[key] = false;
-		var potentialLines = new Dictionary<Direction, int>
-		{
-			{ Direction.Horizontal, find_line_horizontal_left(pos.X - 1, pos.Y, is_opponent_piece, 0) + find_line_horizontal_right(pos.X + 1, pos.Y, is_opponent_piece, 0) + 1 },
-			{ Direction.Vertical, find_line_vertical_down(pos.X, pos.Y + 1, is_opponent_piece, 0) + find_line_vertical_up(pos.X, pos.Y - 1, is_opponent_piece, 0) + 1 },
-			{ Direction.DiagonalS, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, is_opponent_piece, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, is_opponent_piece, 0) + 1 },
-			{ Direction.DiagonalA, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, is_opponent_piece, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, is_opponent_piece, 0) + 1 }
-		};
-		foreach (var key in potentialLines.Keys.ToList())
-		{
-			if (!_canPlay[key])
-				potentialLines[key] = 0;
-		}
-		var max = potentialLines.Max(kvp => kvp.Value);
-		if (max >= 3)
-			return potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First();
-		return Direction.None;
 	}
 
+	private int find_line_vertical_up(int x, int y, Func<int, int, bool> checkPiece)
+	{
+		var pieces = 0;
+		var iterations = 0;
+		var isLastFree = false;
+		while (iterations < 5)
+		{
+			if (is_out_of_board(x, y))
+				return pieces;
+			if (is_free(x, y))
+			{
+				_canPlay[Direction.VerticalUp] = true;
+				if (isLastFree)
+					return pieces;
+				isLastFree = true;
+			}
+			else if (checkPiece(x, y))
+			{
+				isLastFree = false;
+				++pieces;
+			}
+			else
+				return pieces;
+			--y;
+			++iterations;
+		}
+		return pieces;
+	}
+
+	private int find_line_vertical_down(int x, int y, Func<int, int, bool> checkPiece)
+	{
+		var pieces = 0;
+		var iterations = 0;
+		var isLastFree = false;
+		while (iterations < 5)
+		{
+			if (is_out_of_board(x, y))
+				return pieces;
+			if (is_free(x, y))
+			{
+				_canPlay[Direction.VerticalDown] = true;
+				if (isLastFree)
+					return pieces;
+				isLastFree = true;
+			}
+			else if (checkPiece(x, y))
+			{
+				isLastFree = false;
+				++pieces;
+			}
+			else
+				return pieces;
+			++y;
+			++iterations;
+		}
+		return pieces;
+	}
+	
+	private int find_line_diagonal_slash_up(int x, int y, Func<int, int, bool> checkPiece)
+	{
+		var pieces = 0;
+		var iterations = 0;
+		var isLastFree = false;
+		while (iterations < 5)
+		{
+			if (is_out_of_board(x, y))
+				return pieces;
+			if (is_free(x, y))
+			{
+				_canPlay[Direction.DiagonalSlashUp] = true;
+				if (isLastFree)
+					return pieces;
+				isLastFree = true;
+			}
+			else if (checkPiece(x, y))
+			{
+				isLastFree = false;
+				++pieces;
+			}
+			else
+				return pieces;
+			++x;
+			--y;
+			++iterations;
+		}
+		return pieces;
+	}
+	
+	private int find_line_diagonal_slash_down(int x, int y, Func<int, int, bool> checkPiece)
+	{
+		var pieces = 0;
+		var iterations = 0;
+		var isLastFree = false;
+		while (iterations < 5)
+		{
+			if (is_out_of_board(x, y))
+				return pieces;
+			if (is_free(x, y))
+			{
+				_canPlay[Direction.DiagonalSlashDown] = true;
+				if (isLastFree)
+					return pieces;
+				isLastFree = true;
+			}
+			else if (checkPiece(x, y))
+			{
+				isLastFree = false;
+				++pieces;
+			}
+			else
+				return pieces;
+			--x;
+			++y;
+			++iterations;
+		}
+		return pieces;
+	}
+
+	private int find_line_diagonal_antislash_up(int x, int y, Func<int, int, bool> checkPiece)
+	{
+		var pieces = 0;
+		var iterations = 0;
+		var isLastFree = false;
+		while (iterations < 5)
+		{
+			if (is_out_of_board(x, y))
+				return pieces;
+			if (is_free(x, y))
+			{
+				_canPlay[Direction.DiagonalAntislashUp] = true;
+				if (isLastFree)
+					return pieces;
+				isLastFree = true;
+			}
+			else if (checkPiece(x, y))
+			{
+				isLastFree = false;
+				++pieces;
+			}
+			else
+				return pieces;
+			--x;
+			--y;
+			++iterations;
+		}
+		return pieces;
+	}
+	
+	private int find_line_diagonal_antislash_down(int x, int y, Func<int, int, bool> checkPiece)
+	{
+		var pieces = 0;
+		var iterations = 0;
+		var isLastFree = false;
+		while (iterations < 5)
+		{
+			if (is_out_of_board(x, y))
+				return pieces;
+			if (is_free(x, y))
+			{
+				_canPlay[Direction.DiagonalAntislashDown] = true;
+				if (isLastFree)
+					return pieces;
+				isLastFree = true;
+			}
+			else if (checkPiece(x, y))
+			{
+				isLastFree = false;
+				++pieces;
+			}
+			else
+				return pieces;
+			++x;
+			++y;
+			++iterations;
+		}
+		return pieces;
+	}
+	
 	private Position play_horizontal_left(int x, int y, Func<int, int, bool> checkPiece)
 	{
 		if (is_out_of_board(x, y))
@@ -362,45 +487,44 @@ internal class GomocupEngine : GomocupInterface
 	
 	private Position play_at(Direction dir, Position pos, Func<int, int, bool> checkPiece)
 	{
-		Position ret;
 		switch (dir)
 		{
 			case Direction.Horizontal:
-				return (ret = play_horizontal_left(pos.X - 1, pos.Y, checkPiece)) != null ? ret
-					: play_horizontal_right(pos.X + 1, pos.Y, checkPiece);
+				if (_canPlay[Direction.HorizontalLeft] && !_canPlay[Direction.HorizontalRight])
+					return play_horizontal_left(pos.X, pos.Y, checkPiece);
+				if (_canPlay[Direction.HorizontalRight] && !_canPlay[Direction.HorizontalLeft])
+					return play_horizontal_right(pos.X, pos.Y, checkPiece);
+				return _pieces[Direction.HorizontalLeft] >= _pieces[Direction.HorizontalRight]
+					? play_horizontal_left(pos.X, pos.Y, checkPiece)
+					: play_horizontal_right(pos.X, pos.Y, checkPiece);
 			case Direction.Vertical:
-				return (ret = play_vertical_down(pos.X, pos.Y + 1, checkPiece)) != null ? ret
-					: play_vertical_up(pos.X, pos.Y - 1, checkPiece);
-			case Direction.DiagonalS:
-				return (ret = play_diagonal_slash_down(pos.X - 1, pos.Y + 1, checkPiece)) != null ? ret
-					: play_diagonal_slash_up(pos.X + 1, pos.Y - 1, checkPiece);
-			case Direction.DiagonalA:
-				return (ret = play_diagonal_antislash_down(pos.X + 1, pos.Y + 1, checkPiece)) != null ? ret
-					: play_diagonal_antislash_up(pos.X - 1, pos.Y - 1, checkPiece);
+				if (_canPlay[Direction.VerticalUp] && !_canPlay[Direction.VerticalDown])
+					return play_vertical_up(pos.X, pos.Y, checkPiece);
+				if (_canPlay[Direction.VerticalDown] && !_canPlay[Direction.VerticalUp])
+					return play_vertical_down(pos.X, pos.Y, checkPiece);
+				return _pieces[Direction.VerticalUp] >= _pieces[Direction.VerticalDown]
+					? play_vertical_up(pos.X, pos.Y, checkPiece)
+					: play_vertical_down(pos.X, pos.Y, checkPiece);
+			case Direction.DiagonalSlash:
+				if (_canPlay[Direction.DiagonalSlashUp] && !_canPlay[Direction.DiagonalSlashDown])
+					return play_diagonal_slash_up(pos.X, pos.Y, checkPiece);
+				if (_canPlay[Direction.DiagonalSlashDown] && !_canPlay[Direction.DiagonalSlashUp])
+					return play_diagonal_slash_down(pos.X, pos.Y, checkPiece);
+				return _pieces[Direction.DiagonalSlashUp] >= _pieces[Direction.DiagonalSlashDown]
+					? play_diagonal_slash_up(pos.X, pos.Y, checkPiece)
+					: play_diagonal_slash_down(pos.X, pos.Y, checkPiece);
+			case Direction.DiagonalAntislash:
+				if (_canPlay[Direction.DiagonalAntislashUp] && !_canPlay[Direction.DiagonalAntislashDown])
+					return play_diagonal_antislash_up(pos.X, pos.Y, checkPiece);
+				if (_canPlay[Direction.DiagonalAntislashDown] && !_canPlay[Direction.DiagonalAntislashUp])
+					return play_diagonal_antislash_down(pos.X, pos.Y, checkPiece);
+				return _pieces[Direction.DiagonalAntislashUp] >= _pieces[Direction.DiagonalAntislashDown]
+					? play_diagonal_antislash_up(pos.X, pos.Y, checkPiece)
+					: play_diagonal_antislash_down(pos.X, pos.Y, checkPiece);
 		}
 		return null;
 	}
 	
-	private Position attack_at(Position pos)
-	{
-		foreach (var key in _canPlay.Keys.ToList())
-			_canPlay[key] = false;
-		var potentialLines = new Dictionary<Direction, int>
-		{
-			{ Direction.Horizontal, find_line_horizontal_left(pos.X - 1, pos.Y, is_my_piece, 0) + find_line_horizontal_right(pos.X + 1, pos.Y, is_my_piece, 0) + 1 },
-			{ Direction.Vertical, find_line_vertical_down(pos.X, pos.Y + 1, is_my_piece, 0) + find_line_vertical_up(pos.X, pos.Y - 1, is_my_piece, 0) + 1 },
-			{ Direction.DiagonalS, find_line_diagonal_slash_up(pos.X + 1, pos.Y - 1, is_my_piece, 0) + find_line_diagonal_slash_down(pos.X - 1, pos.Y + 1, is_my_piece, 0) + 1 },
-			{ Direction.DiagonalA, find_line_diagonal_antislash_up(pos.X - 1, pos.Y - 1, is_my_piece, 0) + find_line_diagonal_antislash_down(pos.X + 1, pos.Y + 1, is_my_piece, 0) + 1 }
-		};
-		foreach (var key in potentialLines.Keys.ToList())
-		{
-			if (!_canPlay[key])
-				potentialLines[key] = 0;
-		}
-		var max = potentialLines.Max(kvp => kvp.Value);
-		return play_at(potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First(), pos, is_my_piece);
-	}
-
 	private Position random_play()
 	{
 		Position pos;
@@ -414,32 +538,82 @@ internal class GomocupEngine : GomocupInterface
 		return pos;
 	}
 	
+	private Dictionary<Direction, int> get_dangerousness_analysis(Position pos, Func<int, int, bool> checkPiece)
+	{
+		foreach (var key in _canPlay.Keys.ToList())
+			_canPlay[key] = false;
+		_pieces[Direction.VerticalUp] = find_line_vertical_up(pos.X, pos.Y, checkPiece);
+		_pieces[Direction.VerticalDown] = find_line_vertical_down(pos.X, pos.Y, checkPiece);
+		_pieces[Direction.HorizontalLeft] = find_line_horizontal_left(pos.X, pos.Y, checkPiece);
+		_pieces[Direction.HorizontalRight] = find_line_horizontal_right(pos.X, pos.Y, checkPiece);
+		_pieces[Direction.DiagonalSlashUp] = find_line_diagonal_slash_up(pos.X, pos.Y, checkPiece);
+		_pieces[Direction.DiagonalSlashDown] = find_line_diagonal_slash_down(pos.X, pos.Y, checkPiece);
+		_pieces[Direction.DiagonalAntislashUp] = find_line_diagonal_antislash_up(pos.X, pos.Y, checkPiece);
+		_pieces[Direction.DiagonalAntislashDown] = find_line_diagonal_antislash_down(pos.X, pos.Y, checkPiece);
+		var potentialLines = new Dictionary<Direction, int>
+		{
+			{ Direction.Vertical, !_canPlay[Direction.VerticalUp] && !_canPlay[Direction.VerticalDown] ? 0 : _pieces[Direction.VerticalUp] + _pieces[Direction.VerticalDown] - 1 },
+			{ Direction.Horizontal, !_canPlay[Direction.HorizontalLeft] && !_canPlay[Direction.HorizontalRight] ? 0 : _pieces[Direction.HorizontalLeft] + _pieces[Direction.HorizontalRight] - 1 },
+			{ Direction.DiagonalSlash, !_canPlay[Direction.DiagonalSlashUp] && !_canPlay[Direction.DiagonalSlashDown] ? 0 : _pieces[Direction.DiagonalSlashUp] + _pieces[Direction.DiagonalSlashDown] - 1},
+			{ Direction.DiagonalAntislash, !_canPlay[Direction.DiagonalAntislashUp] && !_canPlay[Direction.DiagonalAntislashDown] ? 0 : _pieces[Direction.DiagonalAntislashUp] + _pieces[Direction.DiagonalAntislashDown] - 1 }
+		};
+		return potentialLines;
+	}
+
+	private Direction check_defense_needs()
+	{
+		Console.WriteLine("MESSAGE [Whatateam] Analyzing from pos [" + _opponentLastMove.X + "," + _opponentLastMove.Y + "]");
+		var potentialLines = get_dangerousness_analysis(_opponentLastMove, is_opponent_piece);
+		var max = potentialLines.Max(kvp => kvp.Value);
+		Console.WriteLine("MESSAGE [Whatateam] Most dangerous zone: " + potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First()
+		                  + " (" + max + ")");
+//		if (max >= 3 || (max == 2 && _rand.Next(0, 1) == 0))
+		if (max >= 3)
+			return potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First();
+		return Direction.None;
+	}
+
+	private Position attack_in_zone()
+	{
+		var potentialLines = get_dangerousness_analysis(_attackZone, is_my_piece);
+		var max = potentialLines.Max(kvp => kvp.Value);
+		var dir = potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First();
+		return play_at(dir, _attackZone, is_my_piece);
+	}
+	
 	public override void brain_turn()
 	{
-		Position pos;
+		Position pos = null;
 		try
 		{
-			var dangerZone = find_danger_zone(_opponentLastMove);
-			if (dangerZone == Direction.None)
+			var dangerZone = check_defense_needs();
+			if (dangerZone != Direction.None)
 			{
+				Console.WriteLine("MESSAGE [Whatateam] Defending...");
+				pos = play_at(dangerZone, _opponentLastMove, is_opponent_piece);
+			}
+			else
+			{
+				Console.WriteLine("MESSAGE [Whatateam] Attacking...");
 				if (_attackZone == null)
 					_attackZone = pos = random_play();
 				else
 				{
-					pos = attack_at(_attackZone);
+					pos = attack_in_zone();
 					_attackZone = pos;
 				}
 			}
-			else
-				pos = play_at(dangerZone, _opponentLastMove, is_opponent_piece);
 		} catch (Exception) {
 			pos = null;
-			Console.WriteLine("MESSAGE [Whatateam AI] Something went wrong!");
+			Console.WriteLine("MESSAGE [Whatateam] Something went wrong!");
 		}
 		if (terminate != 0)
 			return;
 		if (pos == null)
+		{
+			Console.WriteLine("MESSAGE [Whatateam] Something went wrong! Random play...");
 			_attackZone = pos = random_play();
+		}
 		do_mymove(pos.X, pos.Y);
 	}
 
