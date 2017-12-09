@@ -35,11 +35,11 @@ internal enum Direction
 internal class GomocupEngine : GomocupInterface
 {
 	private const int MaxBoardSize = 100;
-	private int[,] _board = new int[MaxBoardSize, MaxBoardSize];
-	private Random _rand = new Random();
-	private Position _opponentLastMove = new Position();
+	private readonly int[,] _board = new int[MaxBoardSize, MaxBoardSize];
+	private readonly Random _rand = new Random();
+	private readonly Position _opponentLastMove = new Position();
 	private Position _attackZone;
-	private Dictionary<Direction, bool> _canPlay = new Dictionary<Direction, bool>
+	private readonly Dictionary<Direction, bool> _canPlay = new Dictionary<Direction, bool>
 	{
 		{ Direction.VerticalUp, false },
 		{ Direction.VerticalDown, false },
@@ -50,7 +50,7 @@ internal class GomocupEngine : GomocupInterface
 		{ Direction.DiagonalAntislashUp, false },
 		{ Direction.DiagonalAntislashDown, false }
 	};
-	private Dictionary<Direction, bool> _hasHole = new Dictionary<Direction, bool>
+	private readonly Dictionary<Direction, bool> _hasHole = new Dictionary<Direction, bool>
 	{
 		{ Direction.VerticalUp, false },
 		{ Direction.VerticalDown, false },
@@ -61,7 +61,7 @@ internal class GomocupEngine : GomocupInterface
 		{ Direction.DiagonalAntislashUp, false },
 		{ Direction.DiagonalAntislashDown, false }
 	};
-	private Dictionary<Direction, int> _pieces = new Dictionary<Direction, int>
+	private readonly Dictionary<Direction, int> _pieces = new Dictionary<Direction, int>
 		{
 			{ Direction.VerticalUp, 0 },
 			{ Direction.VerticalDown, 0 },
@@ -172,7 +172,7 @@ internal class GomocupEngine : GomocupInterface
 		return 2;
 	}
 	
-	private int find_line_horizontal_right(int x, int y, Func<int, int, bool> checkPiece)
+	private int find_line_horizontal_right(int x, int y, Func<int, int, bool> checkPiece, bool findPotential)
 	{
 		var pieces = 0;
 		var iterations = 0;
@@ -183,14 +183,19 @@ internal class GomocupEngine : GomocupInterface
 				return pieces;
 			if (is_free(x, y))
 			{
-				_canPlay[Direction.HorizontalRight] = true;
-				if (isLastFree)
-					return pieces;
-				isLastFree = true;
+				if (findPotential)
+					++pieces;
+				else
+				{
+					_canPlay[Direction.HorizontalRight] = true;
+					if (isLastFree)
+						return pieces;
+					isLastFree = true;
+				}
 			}
 			else if (checkPiece(x, y))
 			{
-				if (isLastFree)
+				if (!findPotential && isLastFree)
 					_hasHole[Direction.HorizontalRight] = true;
 				isLastFree = false;
 				++pieces;
@@ -203,7 +208,7 @@ internal class GomocupEngine : GomocupInterface
 		return pieces;
 	}
 	
-	private int find_line_horizontal_left(int x, int y, Func<int, int, bool> checkPiece)
+	private int find_line_horizontal_left(int x, int y, Func<int, int, bool> checkPiece, bool findPotential)
 	{
 		var pieces = 0;
 		var iterations = 0;
@@ -214,14 +219,19 @@ internal class GomocupEngine : GomocupInterface
 				return pieces;
 			if (is_free(x, y))
 			{
-				_canPlay[Direction.HorizontalLeft] = true;
-				if (isLastFree)
-					return pieces;
-				isLastFree = true;
+				if (findPotential)
+					++pieces;
+				else
+				{
+					_canPlay[Direction.HorizontalLeft] = true;
+					if (isLastFree)
+						return pieces;
+					isLastFree = true;
+				}
 			}
 			else if (checkPiece(x, y))
 			{
-				if (isLastFree)
+				if (!findPotential && isLastFree)
 					_hasHole[Direction.HorizontalLeft] = true;
 				isLastFree = false;
 				++pieces;
@@ -234,7 +244,7 @@ internal class GomocupEngine : GomocupInterface
 		return pieces;
 	}
 
-	private int find_line_vertical_up(int x, int y, Func<int, int, bool> checkPiece)
+	private int find_line_vertical_up(int x, int y, Func<int, int, bool> checkPiece, bool findPotential)
 	{
 		var pieces = 0;
 		var iterations = 0;
@@ -245,14 +255,19 @@ internal class GomocupEngine : GomocupInterface
 				return pieces;
 			if (is_free(x, y))
 			{
-				_canPlay[Direction.VerticalUp] = true;
-				if (isLastFree)
-					return pieces;
-				isLastFree = true;
+				if (findPotential)
+					++pieces;
+				else
+				{
+					_canPlay[Direction.VerticalUp] = true;
+					if (isLastFree)
+						return pieces;
+					isLastFree = true;
+				}
 			}
 			else if (checkPiece(x, y))
 			{
-				if (isLastFree)
+				if (!findPotential && isLastFree)
 					_hasHole[Direction.VerticalUp] = true;
 				isLastFree = false;
 				++pieces;
@@ -265,7 +280,7 @@ internal class GomocupEngine : GomocupInterface
 		return pieces;
 	}
 
-	private int find_line_vertical_down(int x, int y, Func<int, int, bool> checkPiece)
+	private int find_line_vertical_down(int x, int y, Func<int, int, bool> checkPiece, bool findPotential)
 	{
 		var pieces = 0;
 		var iterations = 0;
@@ -276,14 +291,19 @@ internal class GomocupEngine : GomocupInterface
 				return pieces;
 			if (is_free(x, y))
 			{
-				_canPlay[Direction.VerticalDown] = true;
-				if (isLastFree)
-					return pieces;
-				isLastFree = true;
+				if (findPotential)
+					++pieces;
+				else
+				{
+					_canPlay[Direction.VerticalDown] = true;
+					if (isLastFree)
+						return pieces;
+					isLastFree = true;
+				}
 			}
 			else if (checkPiece(x, y))
 			{
-				if (isLastFree)
+				if (!findPotential && isLastFree)
 					_hasHole[Direction.VerticalDown] = true;
 				isLastFree = false;
 				++pieces;
@@ -296,7 +316,7 @@ internal class GomocupEngine : GomocupInterface
 		return pieces;
 	}
 	
-	private int find_line_diagonal_slash_up(int x, int y, Func<int, int, bool> checkPiece)
+	private int find_line_diagonal_slash_up(int x, int y, Func<int, int, bool> checkPiece, bool findPotential)
 	{
 		var pieces = 0;
 		var iterations = 0;
@@ -307,14 +327,19 @@ internal class GomocupEngine : GomocupInterface
 				return pieces;
 			if (is_free(x, y))
 			{
-				_canPlay[Direction.DiagonalSlashUp] = true;
-				if (isLastFree)
-					return pieces;
-				isLastFree = true;
+				if (findPotential)
+					++pieces;
+				else
+				{
+					_canPlay[Direction.DiagonalSlashUp] = true;
+					if (isLastFree)
+						return pieces;
+					isLastFree = true;
+				}
 			}
 			else if (checkPiece(x, y))
 			{
-				if (isLastFree)
+				if (!findPotential && isLastFree)
 					_hasHole[Direction.DiagonalSlashUp] = true;
 				isLastFree = false;
 				++pieces;
@@ -328,7 +353,7 @@ internal class GomocupEngine : GomocupInterface
 		return pieces;
 	}
 	
-	private int find_line_diagonal_slash_down(int x, int y, Func<int, int, bool> checkPiece)
+	private int find_line_diagonal_slash_down(int x, int y, Func<int, int, bool> checkPiece, bool findPotential)
 	{
 		var pieces = 0;
 		var iterations = 0;
@@ -339,14 +364,19 @@ internal class GomocupEngine : GomocupInterface
 				return pieces;
 			if (is_free(x, y))
 			{
-				_canPlay[Direction.DiagonalSlashDown] = true;
-				if (isLastFree)
-					return pieces;
-				isLastFree = true;
+				if (findPotential)
+					++pieces;
+				else
+				{
+					_canPlay[Direction.DiagonalSlashDown] = true;
+					if (isLastFree)
+						return pieces;
+					isLastFree = true;
+				}
 			}
 			else if (checkPiece(x, y))
 			{
-				if (isLastFree)
+				if (!findPotential && isLastFree)
 					_hasHole[Direction.DiagonalSlashDown] = true;
 				isLastFree = false;
 				++pieces;
@@ -360,7 +390,7 @@ internal class GomocupEngine : GomocupInterface
 		return pieces;
 	}
 
-	private int find_line_diagonal_antislash_up(int x, int y, Func<int, int, bool> checkPiece)
+	private int find_line_diagonal_antislash_up(int x, int y, Func<int, int, bool> checkPiece, bool findPotential)
 	{
 		var pieces = 0;
 		var iterations = 0;
@@ -371,14 +401,19 @@ internal class GomocupEngine : GomocupInterface
 				return pieces;
 			if (is_free(x, y))
 			{
-				_canPlay[Direction.DiagonalAntislashUp] = true;
-				if (isLastFree)
-					return pieces;
-				isLastFree = true;
+				if (findPotential)
+					++pieces;
+				else
+				{
+					_canPlay[Direction.DiagonalAntislashUp] = true;
+					if (isLastFree)
+						return pieces;
+					isLastFree = true;
+				}
 			}
 			else if (checkPiece(x, y))
 			{
-				if (isLastFree)
+				if (!findPotential && isLastFree)
 					_hasHole[Direction.DiagonalAntislashUp] = true;
 				isLastFree = false;
 				++pieces;
@@ -392,7 +427,7 @@ internal class GomocupEngine : GomocupInterface
 		return pieces;
 	}
 	
-	private int find_line_diagonal_antislash_down(int x, int y, Func<int, int, bool> checkPiece)
+	private int find_line_diagonal_antislash_down(int x, int y, Func<int, int, bool> checkPiece, bool findPotential)
 	{
 		var pieces = 0;
 		var iterations = 0;
@@ -403,14 +438,19 @@ internal class GomocupEngine : GomocupInterface
 				return pieces;
 			if (is_free(x, y))
 			{
-				_canPlay[Direction.DiagonalAntislashDown] = true;
-				if (isLastFree)
-					return pieces;
-				isLastFree = true;
+				if (findPotential)
+					++pieces;
+				else
+				{
+					_canPlay[Direction.DiagonalAntislashDown] = true;
+					if (isLastFree)
+						return pieces;
+					isLastFree = true;
+				}
 			}
 			else if (checkPiece(x, y))
 			{
-				if (isLastFree)
+				if (!findPotential && isLastFree)
 					_hasHole[Direction.DiagonalAntislashDown] = true;
 				isLastFree = false;
 				++pieces;
@@ -600,6 +640,26 @@ internal class GomocupEngine : GomocupInterface
 		} while (!is_free(pos.X, pos.Y));
 		return pos;
 	}
+
+	private bool can_align_five(Position pos, Direction dir, Func<int, int, bool> checkPiece)
+	{
+		switch (dir)
+		{
+			case Direction.Horizontal:
+				return find_line_horizontal_left(pos.X, pos.Y, checkPiece, true) +
+				       find_line_horizontal_right(pos.X, pos.Y, checkPiece, true) - 1 >= 5;
+			case Direction.Vertical:
+				return find_line_vertical_up(pos.X, pos.Y, checkPiece, true) +
+				       find_line_vertical_down(pos.X, pos.Y, checkPiece, true) - 1 >= 5;
+			case Direction.DiagonalSlash:
+				return find_line_diagonal_slash_up(pos.X, pos.Y, checkPiece, true) +
+				       find_line_diagonal_slash_down(pos.X, pos.Y, checkPiece, true) - 1 >= 5;
+			case Direction.DiagonalAntislash:
+				return find_line_diagonal_antislash_up(pos.X, pos.Y, checkPiece, true) +
+				       find_line_diagonal_antislash_down(pos.X, pos.Y, checkPiece, true) - 1 >= 5;
+		}
+		return true;
+	}
 	
 	private Dictionary<Direction, int> get_dangerousness_analysis(Position pos, Func<int, int, bool> checkPiece)
 	{
@@ -607,20 +667,24 @@ internal class GomocupEngine : GomocupInterface
 			_canPlay[key] = false;
 		foreach (var key in _hasHole.Keys.ToList())
 			_hasHole[key] = false;
-		_pieces[Direction.VerticalUp] = find_line_vertical_up(pos.X, pos.Y, checkPiece);
-		_pieces[Direction.VerticalDown] = find_line_vertical_down(pos.X, pos.Y, checkPiece);
-		_pieces[Direction.HorizontalLeft] = find_line_horizontal_left(pos.X, pos.Y, checkPiece);
-		_pieces[Direction.HorizontalRight] = find_line_horizontal_right(pos.X, pos.Y, checkPiece);
-		_pieces[Direction.DiagonalSlashUp] = find_line_diagonal_slash_up(pos.X, pos.Y, checkPiece);
-		_pieces[Direction.DiagonalSlashDown] = find_line_diagonal_slash_down(pos.X, pos.Y, checkPiece);
-		_pieces[Direction.DiagonalAntislashUp] = find_line_diagonal_antislash_up(pos.X, pos.Y, checkPiece);
-		_pieces[Direction.DiagonalAntislashDown] = find_line_diagonal_antislash_down(pos.X, pos.Y, checkPiece);
+		_pieces[Direction.VerticalUp] = find_line_vertical_up(pos.X, pos.Y, checkPiece, false);
+		_pieces[Direction.VerticalDown] = find_line_vertical_down(pos.X, pos.Y, checkPiece, false);
+		_pieces[Direction.HorizontalLeft] = find_line_horizontal_left(pos.X, pos.Y, checkPiece, false);
+		_pieces[Direction.HorizontalRight] = find_line_horizontal_right(pos.X, pos.Y, checkPiece, false);
+		_pieces[Direction.DiagonalSlashUp] = find_line_diagonal_slash_up(pos.X, pos.Y, checkPiece, false);
+		_pieces[Direction.DiagonalSlashDown] = find_line_diagonal_slash_down(pos.X, pos.Y, checkPiece, false);
+		_pieces[Direction.DiagonalAntislashUp] = find_line_diagonal_antislash_up(pos.X, pos.Y, checkPiece, false);
+		_pieces[Direction.DiagonalAntislashDown] = find_line_diagonal_antislash_down(pos.X, pos.Y, checkPiece, false);
 		var potentialLines = new Dictionary<Direction, int>
 		{
-			{ Direction.Vertical, !_canPlay[Direction.VerticalUp] && !_canPlay[Direction.VerticalDown] ? 0 : _pieces[Direction.VerticalUp] + _pieces[Direction.VerticalDown] - 1 },
-			{ Direction.Horizontal, !_canPlay[Direction.HorizontalLeft] && !_canPlay[Direction.HorizontalRight] ? 0 : _pieces[Direction.HorizontalLeft] + _pieces[Direction.HorizontalRight] - 1 },
-			{ Direction.DiagonalSlash, !_canPlay[Direction.DiagonalSlashUp] && !_canPlay[Direction.DiagonalSlashDown] ? 0 : _pieces[Direction.DiagonalSlashUp] + _pieces[Direction.DiagonalSlashDown] - 1},
-			{ Direction.DiagonalAntislash, !_canPlay[Direction.DiagonalAntislashUp] && !_canPlay[Direction.DiagonalAntislashDown] ? 0 : _pieces[Direction.DiagonalAntislashUp] + _pieces[Direction.DiagonalAntislashDown] - 1 }
+			{ Direction.Vertical, !_canPlay[Direction.VerticalUp] && !_canPlay[Direction.VerticalDown] || !can_align_five(pos, Direction.Vertical, checkPiece)
+				? 0 : _pieces[Direction.VerticalUp] + _pieces[Direction.VerticalDown] - 1 },
+			{ Direction.Horizontal, !_canPlay[Direction.HorizontalLeft] && !_canPlay[Direction.HorizontalRight] || !can_align_five(pos, Direction.Horizontal, checkPiece)
+				? 0 : _pieces[Direction.HorizontalLeft] + _pieces[Direction.HorizontalRight] - 1 },
+			{ Direction.DiagonalSlash, !_canPlay[Direction.DiagonalSlashUp] && !_canPlay[Direction.DiagonalSlashDown] || !can_align_five(pos, Direction.DiagonalSlash, checkPiece)
+				? 0 : _pieces[Direction.DiagonalSlashUp] + _pieces[Direction.DiagonalSlashDown] - 1},
+			{ Direction.DiagonalAntislash, !_canPlay[Direction.DiagonalAntislashUp] && !_canPlay[Direction.DiagonalAntislashDown] || !can_align_five(pos, Direction.DiagonalAntislash, checkPiece)
+				? 0 : _pieces[Direction.DiagonalAntislashUp] + _pieces[Direction.DiagonalAntislashDown] - 1 }
 		};
 		return potentialLines;
 	}
