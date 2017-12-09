@@ -18,4 +18,5 @@ You can use you favorite IDE to load the .NET solution and build `pbrain-Whatate
  - Open Windows' Command Prompt (`cmd`)
  - Navigate to the root of the repository
  - Execute the following command:
+
 ```C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe pbrain-Whatateam.sln```
