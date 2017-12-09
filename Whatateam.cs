@@ -50,6 +50,17 @@ internal class GomocupEngine : GomocupInterface
 		{ Direction.DiagonalAntislashUp, false },
 		{ Direction.DiagonalAntislashDown, false }
 	};
+	private Dictionary<Direction, bool> _hasHole = new Dictionary<Direction, bool>
+	{
+		{ Direction.VerticalUp, false },
+		{ Direction.VerticalDown, false },
+		{ Direction.HorizontalLeft, false },
+		{ Direction.HorizontalRight, false },
+		{ Direction.DiagonalSlashUp, false },
+		{ Direction.DiagonalSlashDown, false },
+		{ Direction.DiagonalAntislashUp, false },
+		{ Direction.DiagonalAntislashDown, false }
+	};
 	private Dictionary<Direction, int> _pieces = new Dictionary<Direction, int>
 		{
 			{ Direction.VerticalUp, 0 },
@@ -179,6 +190,8 @@ internal class GomocupEngine : GomocupInterface
 			}
 			else if (checkPiece(x, y))
 			{
+				if (isLastFree)
+					_hasHole[Direction.HorizontalRight] = true;
 				isLastFree = false;
 				++pieces;
 			}
@@ -208,6 +221,8 @@ internal class GomocupEngine : GomocupInterface
 			}
 			else if (checkPiece(x, y))
 			{
+				if (isLastFree)
+					_hasHole[Direction.HorizontalLeft] = true;
 				isLastFree = false;
 				++pieces;
 			}
@@ -237,6 +252,8 @@ internal class GomocupEngine : GomocupInterface
 			}
 			else if (checkPiece(x, y))
 			{
+				if (isLastFree)
+					_hasHole[Direction.VerticalUp] = true;
 				isLastFree = false;
 				++pieces;
 			}
@@ -266,6 +283,8 @@ internal class GomocupEngine : GomocupInterface
 			}
 			else if (checkPiece(x, y))
 			{
+				if (isLastFree)
+					_hasHole[Direction.VerticalDown] = true;
 				isLastFree = false;
 				++pieces;
 			}
@@ -295,6 +314,8 @@ internal class GomocupEngine : GomocupInterface
 			}
 			else if (checkPiece(x, y))
 			{
+				if (isLastFree)
+					_hasHole[Direction.DiagonalSlashUp] = true;
 				isLastFree = false;
 				++pieces;
 			}
@@ -325,6 +346,8 @@ internal class GomocupEngine : GomocupInterface
 			}
 			else if (checkPiece(x, y))
 			{
+				if (isLastFree)
+					_hasHole[Direction.DiagonalSlashDown] = true;
 				isLastFree = false;
 				++pieces;
 			}
@@ -355,6 +378,8 @@ internal class GomocupEngine : GomocupInterface
 			}
 			else if (checkPiece(x, y))
 			{
+				if (isLastFree)
+					_hasHole[Direction.DiagonalAntislashUp] = true;
 				isLastFree = false;
 				++pieces;
 			}
@@ -385,6 +410,8 @@ internal class GomocupEngine : GomocupInterface
 			}
 			else if (checkPiece(x, y))
 			{
+				if (isLastFree)
+					_hasHole[Direction.DiagonalAntislashDown] = true;
 				isLastFree = false;
 				++pieces;
 			}
@@ -484,43 +511,79 @@ internal class GomocupEngine : GomocupInterface
 			return play_diagonal_antislash_up(x - 1, y - 1, checkPiece);
  		return null;
 	}
-	
+
+	private Position play_horizontal(Position pos, Func<int, int, bool> checkPiece)
+	{
+		if (_canPlay[Direction.HorizontalLeft] && !_canPlay[Direction.HorizontalRight])
+			return play_horizontal_left(pos.X, pos.Y, checkPiece);
+		if (_canPlay[Direction.HorizontalRight] && !_canPlay[Direction.HorizontalLeft])
+			return play_horizontal_right(pos.X, pos.Y, checkPiece);
+		if (_hasHole[Direction.HorizontalLeft] && _canPlay[Direction.HorizontalLeft])
+			return play_horizontal_left(pos.X, pos.Y, checkPiece);
+		if (_hasHole[Direction.HorizontalRight] && _canPlay[Direction.HorizontalRight])
+			return play_horizontal_right(pos.X, pos.Y, checkPiece);
+		return _pieces[Direction.HorizontalLeft] >= _pieces[Direction.HorizontalRight]
+			? play_horizontal_left(pos.X, pos.Y, checkPiece)
+			: play_horizontal_right(pos.X, pos.Y, checkPiece);
+	}
+
+	private Position play_vertical(Position pos, Func<int, int, bool> checkPiece)
+	{
+		if (_canPlay[Direction.VerticalUp] && !_canPlay[Direction.VerticalDown])
+			return play_vertical_up(pos.X, pos.Y, checkPiece);
+		if (_canPlay[Direction.VerticalDown] && !_canPlay[Direction.VerticalUp])
+			return play_vertical_down(pos.X, pos.Y, checkPiece);
+		if (_hasHole[Direction.VerticalUp] && _canPlay[Direction.VerticalUp])
+			return play_vertical_up(pos.X, pos.Y, checkPiece);
+		if (_hasHole[Direction.VerticalDown] && _canPlay[Direction.VerticalDown])
+			return play_vertical_down(pos.X, pos.Y, checkPiece);
+		return _pieces[Direction.VerticalUp] >= _pieces[Direction.VerticalDown]
+			? play_vertical_up(pos.X, pos.Y, checkPiece)
+			: play_vertical_down(pos.X, pos.Y, checkPiece);
+	}
+
+	private Position play_diagonal_slash(Position pos, Func<int, int, bool> checkPiece)
+	{
+		if (_canPlay[Direction.DiagonalSlashUp] && !_canPlay[Direction.DiagonalSlashDown])
+			return play_diagonal_slash_up(pos.X, pos.Y, checkPiece);
+		if (_canPlay[Direction.DiagonalSlashDown] && !_canPlay[Direction.DiagonalSlashUp])
+			return play_diagonal_slash_down(pos.X, pos.Y, checkPiece);
+		if (_hasHole[Direction.DiagonalSlashUp] && _canPlay[Direction.DiagonalSlashUp])
+			return play_diagonal_slash_up(pos.X, pos.Y, checkPiece);
+		if (_hasHole[Direction.DiagonalSlashDown] && _canPlay[Direction.DiagonalSlashDown])
+			return play_diagonal_slash_down(pos.X, pos.Y, checkPiece);
+		return _pieces[Direction.DiagonalSlashUp] >= _pieces[Direction.DiagonalSlashDown]
+			? play_diagonal_slash_up(pos.X, pos.Y, checkPiece)
+			: play_diagonal_slash_down(pos.X, pos.Y, checkPiece);
+	}
+
+	private Position play_diagonal_antislash(Position pos, Func<int, int, bool> checkPiece)
+	{
+		if (_canPlay[Direction.DiagonalAntislashUp] && !_canPlay[Direction.DiagonalAntislashDown])
+			return play_diagonal_antislash_up(pos.X, pos.Y, checkPiece);
+		if (_canPlay[Direction.DiagonalAntislashDown] && !_canPlay[Direction.DiagonalAntislashUp])
+			return play_diagonal_antislash_down(pos.X, pos.Y, checkPiece);
+		if (_hasHole[Direction.DiagonalAntislashUp] && _canPlay[Direction.DiagonalAntislashUp])
+			return play_diagonal_antislash_up(pos.X, pos.Y, checkPiece);
+		if (_hasHole[Direction.DiagonalAntislashDown] && _canPlay[Direction.DiagonalAntislashDown])
+			return play_diagonal_antislash_down(pos.X, pos.Y, checkPiece);
+		return _pieces[Direction.DiagonalAntislashUp] >= _pieces[Direction.DiagonalAntislashDown]
+			? play_diagonal_antislash_up(pos.X, pos.Y, checkPiece)
+			: play_diagonal_antislash_down(pos.X, pos.Y, checkPiece);
+	}
+
 	private Position play_at(Direction dir, Position pos, Func<int, int, bool> checkPiece)
 	{
 		switch (dir)
 		{
 			case Direction.Horizontal:
-				if (_canPlay[Direction.HorizontalLeft] && !_canPlay[Direction.HorizontalRight])
-					return play_horizontal_left(pos.X, pos.Y, checkPiece);
-				if (_canPlay[Direction.HorizontalRight] && !_canPlay[Direction.HorizontalLeft])
-					return play_horizontal_right(pos.X, pos.Y, checkPiece);
-				return _pieces[Direction.HorizontalLeft] >= _pieces[Direction.HorizontalRight]
-					? play_horizontal_left(pos.X, pos.Y, checkPiece)
-					: play_horizontal_right(pos.X, pos.Y, checkPiece);
+				return play_horizontal(pos, checkPiece);
 			case Direction.Vertical:
-				if (_canPlay[Direction.VerticalUp] && !_canPlay[Direction.VerticalDown])
-					return play_vertical_up(pos.X, pos.Y, checkPiece);
-				if (_canPlay[Direction.VerticalDown] && !_canPlay[Direction.VerticalUp])
-					return play_vertical_down(pos.X, pos.Y, checkPiece);
-				return _pieces[Direction.VerticalUp] >= _pieces[Direction.VerticalDown]
-					? play_vertical_up(pos.X, pos.Y, checkPiece)
-					: play_vertical_down(pos.X, pos.Y, checkPiece);
+				return play_vertical(pos, checkPiece);
 			case Direction.DiagonalSlash:
-				if (_canPlay[Direction.DiagonalSlashUp] && !_canPlay[Direction.DiagonalSlashDown])
-					return play_diagonal_slash_up(pos.X, pos.Y, checkPiece);
-				if (_canPlay[Direction.DiagonalSlashDown] && !_canPlay[Direction.DiagonalSlashUp])
-					return play_diagonal_slash_down(pos.X, pos.Y, checkPiece);
-				return _pieces[Direction.DiagonalSlashUp] >= _pieces[Direction.DiagonalSlashDown]
-					? play_diagonal_slash_up(pos.X, pos.Y, checkPiece)
-					: play_diagonal_slash_down(pos.X, pos.Y, checkPiece);
+				return play_diagonal_slash(pos, checkPiece);
 			case Direction.DiagonalAntislash:
-				if (_canPlay[Direction.DiagonalAntislashUp] && !_canPlay[Direction.DiagonalAntislashDown])
-					return play_diagonal_antislash_up(pos.X, pos.Y, checkPiece);
-				if (_canPlay[Direction.DiagonalAntislashDown] && !_canPlay[Direction.DiagonalAntislashUp])
-					return play_diagonal_antislash_down(pos.X, pos.Y, checkPiece);
-				return _pieces[Direction.DiagonalAntislashUp] >= _pieces[Direction.DiagonalAntislashDown]
-					? play_diagonal_antislash_up(pos.X, pos.Y, checkPiece)
-					: play_diagonal_antislash_down(pos.X, pos.Y, checkPiece);
+				return play_diagonal_antislash(pos, checkPiece);
 		}
 		return null;
 	}
@@ -542,6 +605,8 @@ internal class GomocupEngine : GomocupInterface
 	{
 		foreach (var key in _canPlay.Keys.ToList())
 			_canPlay[key] = false;
+		foreach (var key in _hasHole.Keys.ToList())
+			_hasHole[key] = false;
 		_pieces[Direction.VerticalUp] = find_line_vertical_up(pos.X, pos.Y, checkPiece);
 		_pieces[Direction.VerticalDown] = find_line_vertical_down(pos.X, pos.Y, checkPiece);
 		_pieces[Direction.HorizontalLeft] = find_line_horizontal_left(pos.X, pos.Y, checkPiece);
@@ -583,7 +648,7 @@ internal class GomocupEngine : GomocupInterface
 	
 	public override void brain_turn()
 	{
-		Position pos = null;
+		Position pos;
 		try
 		{
 			var dangerZone = check_defense_needs();
