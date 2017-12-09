@@ -77,7 +77,7 @@ internal class GomocupEngine : GomocupInterface
 	{
 		get
 		{
-			return "name=\"Whatateam\", author=\"Fanny Tavart, Oscar Stefanini & Ronan Boiteau\", version=\"0.1\", country=\"France\", www=\"http://epitech.eu\"";
+			return "name=\"Whatateam\", author=\"Fanny Tavart, Oscar Stefanini & Ronan Boiteau\", version=\"0.1\", country=\"France\", www=\"https://github.com/ronanboiteau/pbrain-Whatateam\"";
 		}
 	}
 	
@@ -627,12 +627,8 @@ internal class GomocupEngine : GomocupInterface
 
 	private Direction check_defense_needs()
 	{
-		Console.WriteLine("MESSAGE [Whatateam] Analyzing from pos [" + _opponentLastMove.X + "," + _opponentLastMove.Y + "]");
 		var potentialLines = get_dangerousness_analysis(_opponentLastMove, is_opponent_piece);
 		var max = potentialLines.Max(kvp => kvp.Value);
-		Console.WriteLine("MESSAGE [Whatateam] Most dangerous zone: " + potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First()
-		                  + " (" + max + ")");
-//		if (max >= 3 || (max == 2 && _rand.Next(0, 1) == 0))
 		if (max >= 3)
 			return potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First();
 		return Direction.None;
@@ -653,13 +649,9 @@ internal class GomocupEngine : GomocupInterface
 		{
 			var dangerZone = check_defense_needs();
 			if (dangerZone != Direction.None)
-			{
-				Console.WriteLine("MESSAGE [Whatateam] Defending...");
 				pos = play_at(dangerZone, _opponentLastMove, is_opponent_piece);
-			}
 			else
 			{
-				Console.WriteLine("MESSAGE [Whatateam] Attacking...");
 				if (_attackZone == null)
 					_attackZone = pos = random_play();
 				else
@@ -670,15 +662,11 @@ internal class GomocupEngine : GomocupInterface
 			}
 		} catch (Exception) {
 			pos = null;
-			Console.WriteLine("MESSAGE [Whatateam] Something went wrong!");
 		}
 		if (terminate != 0)
 			return;
 		if (pos == null)
-		{
-			Console.WriteLine("MESSAGE [Whatateam] Something went wrong! Random play...");
 			_attackZone = pos = random_play();
-		}
 		do_mymove(pos.X, pos.Y);
 	}
 
