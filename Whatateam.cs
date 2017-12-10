@@ -698,30 +698,32 @@ internal class GomocupEngine : GomocupInterface
 		return Direction.None;
 	}
 
-	private Position attack_in_zone()
-	{
-		var potentialLines = get_dangerousness_analysis(_attackZone, is_my_piece);
-		var max = potentialLines.Max(kvp => kvp.Value);
-		var dir = potentialLines.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).First();
-		return play_at(dir, _attackZone, is_my_piece);
-	}
-	
 	public override void brain_turn()
 	{
 		Position pos;
 		try
 		{
-			var dangerZone = check_defense_needs();
-			if (dangerZone != Direction.None)
-				pos = play_at(dangerZone, _opponentLastMove, is_opponent_piece);
+			var attackPotentialLines = get_dangerousness_analysis(_attackZone, is_my_piece);
+			var attackMax = attackPotentialLines.Max(kvp => kvp.Value);
+			if (attackMax == 4)
+			{
+				_attackZone = pos = play_at(attackPotentialLines.Where(
+					kvp => kvp.Value == attackMax).Select(
+					kvp => kvp.Key).First(), _attackZone, is_my_piece);
+			}
 			else
 			{
-				if (_attackZone == null)
-					_attackZone = pos = random_play();
+				var dangerZone = check_defense_needs();
+				if (dangerZone != Direction.None)
+					pos = play_at(dangerZone, _opponentLastMove, is_opponent_piece);
 				else
 				{
-					pos = attack_in_zone();
-					_attackZone = pos;
+					if (_attackZone == null)
+						_attackZone = pos = random_play();
+					else
+						_attackZone = pos = play_at(attackPotentialLines.Where(
+							kvp => kvp.Value == attackMax).Select(
+							kvp => kvp.Key).First(), _attackZone, is_my_piece);
 				}
 			}
 		} catch (Exception) {
