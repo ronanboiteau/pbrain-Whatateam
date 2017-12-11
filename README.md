@@ -6,6 +6,7 @@ An artificial intelligence for [Piskvork](http://gomocup.org/piskvork/) Gomoku s
 
  - Windows
  - [.NET Framework](https://www.microsoft.com/net/download/windows)
+ - [Piskvork](http://gomocup.org/piskvork/)
 
 ## How to re-compile the IA?
 
