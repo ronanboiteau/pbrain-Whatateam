@@ -5,9 +5,11 @@ An artificial intelligence for [Piskvork](http://gomocup.org/piskvork/) Gomoku s
 ## Requirements
 
  - Windows
- - [.NET Framework](https://www.microsoft.com/net/download/windows) (version 4.7.1)
+ - [.NET Framework](https://www.microsoft.com/net/download/windows)
 
-## How to build?
+## How to re-compile the IA?
+
+A copy of pbrain-Whatateam's last version is located at the root of the repository: `pbrain-Whatateam.exe`.
 
 ### IDE
 
@@ -15,9 +17,10 @@ You can use you favorite IDE to load the .NET solution and build `pbrain-Whatate
 
 ### Command-line
 
- - Open Windows' Command Prompt (`cmd`)
- - Navigate to the root of the repository
- - Execute the following command:
+ - Open Windows' Command Prompt (`cmd`).
+ - You can find .NET's `MSBuild.exe` under one of the subfolders of `C:\Windows\Microsoft.Net\Framework`.
+ - Navigate to the root of the repository & execute your `MSBuild.exe`, passing `pbrain-Whatateam.sln` as an argument.
+ - Here is an example with the .NET Frameword 4.7.1:
 ```
 C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe pbrain-Whatateam.sln
 ```
