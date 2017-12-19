@@ -4,7 +4,7 @@ An artificial intelligence for [Piskvork](http://gomocup.org/piskvork/) Gomoku s
 
 ## Requirements
 
- - Windows
+ - [Windows](https://www.microsoft.com/en-us/windows/)
  - [.NET Framework](https://www.microsoft.com/net/download/windows)
  - [Piskvork](http://gomocup.org/piskvork/)
 
