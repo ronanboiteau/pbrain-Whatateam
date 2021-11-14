@@ -27,9 +27,3 @@ You can use you favorite IDE to load the .NET solution and build `pbrain-Whatate
 ```
 C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe pbrain-Whatateam.sln
 ```
-
-## Authors
-
-* **Fanny Tavart** ([GitHub](https://github.com/fannytavart/) / [LinkedIn](https://www.linkedin.com/in/fannytavart))
-* **Oscar Stefanini** ([GitHub](https://github.com/Ostefanini/))
-* **Ronan Boiteau** ([GitHub](https://github.com/ronanboiteau) / [LinkedIn](https://www.linkedin.com/in/ronanboiteau/))
